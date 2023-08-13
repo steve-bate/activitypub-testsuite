@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "activitypub-testsuite"
+version = "0.1.0"
+description = ""
+authors = ["Steve Bate <svc-github@stevebate.net>"]
+readme = "README.md"
+packages = [{ include = "activitypub_testsuite" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytest = "^7.4.0"
+dictlib = "^1.1.5"
+pytest-asyncio = "^0.21.1"
+cryptography = "^41.0.2"
+httpx = "^0.24.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+ruff = "^0.0.278"
+pre-commit = "^3.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "ap_reqlevel: ActivityPub requirements level",
+    "ap_capability: ActivityPub/AS2 capability required for test",
+]
