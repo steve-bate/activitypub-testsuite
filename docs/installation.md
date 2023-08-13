@@ -1,5 +1,7 @@
 # Installation
 
+[Table of Contents](toc.md)
+
 > [!WARNING]
 > This is still evolving and I expect it to change significantly over time.
 
@@ -30,3 +32,6 @@ Other options:
   * Depend on the git repo
   * Create a submodule and depend on that
   * (Currently, the test suite package is not published to PyPi)
+
+---
+[Table of Contents](toc.md)

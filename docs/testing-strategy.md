@@ -1,6 +1,8 @@
 
 # Server Testing Strategy
 
+[Table of Contents](toc.md)
+
 The technique used to implement the Server Abstraction Layer (SAL) for a specific server implementation depends greatly on that server's implementation. The overall goal is to test the ActivityPub behaviors while minimizing overhead associated with non-AP functionality. For example, we don't need to test the TCP/IP stack so simulated network communication may be an option.
 
 However, we don't necessarily want to skip the server-specific network request processing
@@ -45,3 +47,6 @@ Sometimes more than one of these techniques will be required. The goal is to min
 ## Other Considerations
 
 For servers that rely on several external processes (database, Redis, task queue, full-text indexing, etc.), this is going to be much more difficult. It will probably require a VM or a set of containers (with an orchestrator of some kind) to manage the server environment. Implementing the server reset is TBD for this scenario.
+
+---
+[Table of Contents](toc.md)

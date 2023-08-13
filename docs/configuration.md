@@ -4,7 +4,7 @@
 
 The test configurations are stored in a TOML file with sections for the server and for individual tests.
 
-## Server
+## Server-related Configuration
 
 ### Server Capabilities
 

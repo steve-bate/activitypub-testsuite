@@ -5,13 +5,15 @@ Server-independent, full-automated test suite primary focused on ActivityPub ser
 > [!WARNING]
 > This is an exploratory proof-of-concept. It works, but if you're looking for a simple, easy-to-use, low effort tool, this isn't it. The current documentation is minimal and mostly intended to support collaboration with server developers rather than to support the creation of new server-specific test support. If there's enough interest, that will change over time.
 
+Note that this project is not a standalone test suite project. It is designed to be used by server-specific test projects that implement test support code (and possibly additional tests) specific to that server.
+
 ## Primary Goals
 
-* Server-independent test framework
+* Server-independent, reusable test framework
 * Highly-configurable
 * Fully automated
-* Ensure Test isolation
-* Support local testing (no external servers required)
+* Supports test isolation
+* Supports local testing (no external servers required)
 * Reasonably fast
 
 The benefit of server-independence is that the tests can be re-used with multiple server implementation. Currently, the common approach is to write server-specific tests suites with varying degrees of coverage and automation. The test suite is implemented in Python ([`pytest`](https://docs.pytest.org/)), but supports testing servers written in any programming language.

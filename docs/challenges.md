@@ -1,5 +1,7 @@
 # Challenges
 
+[Table of Contents](toc.md)
+
 The ActivityPub specification seems easy to implement when one first skims the document. However, it eventually because apparent that there is a lot of complexity involved in developing a non-toy server.
 
 This complexity (whether accidental or not) is a challenge for testing too.
@@ -46,3 +48,6 @@ These requirements will necessarily be more specific than a general "Fediverse" 
 To some extent, this is what the [ForgeFed](https://forgefed.org/) is working towards for code forge federation. There may even be multiple, competing interoperability profiles for a domain. I'm envisioning the profile development as collaborative, living, community efforts rather than static official documents from a standards organization.
 
 Given these profiles, it create opportunities for effective automated interoperability testing. Rather than testing every server against every other server, each server can be tested against a known baseline knowing that other servers have been tested in a consistent manner.
+
+---
+[Table of Contents](toc.md)

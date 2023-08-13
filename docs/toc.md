@@ -4,7 +4,7 @@
 
 * [Architecture](architecture.md)
 * [Installation](installation.md)
-* [Testing Strategies](testing-strategies.md)
+* [Server Testing Strategy](testing-strategy.md)
 * [Server Abstraction Layer](sal.md)
 * [Test Configuration](configuration.md)
 * [Challenges](challenges.md)
