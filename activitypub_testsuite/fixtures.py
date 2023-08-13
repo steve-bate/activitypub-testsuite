@@ -33,6 +33,24 @@ def server_test_directory():
     raise NotImplementedError("server_test_directory fixture is required")
 
 
+# Local server
+
+
+@pytest.fixture(scope="session")
+def local_server_port() -> int:
+    return find_available_tcp_port(50000, 51000)
+
+
+@pytest.fixture(scope="session")
+def local_server_url_scheme():
+    return "http"
+
+
+@pytest.fixture(scope="session")
+def local_base_url(local_server_port, local_server_url_scheme):
+    return f"{local_server_url_scheme}://localhost:{local_server_port}"
+
+
 # Local actor clients
 
 
@@ -180,7 +198,6 @@ def local_server_output(server: subprocess.Popen, start_event: Event):
             sys.stdout.write(f"node: {line.decode()}")
     except:  # noqa
         print(f"test: server error: {sys.exc_info}")
-        pass
     finally:
         print("test: server monitoring thread exit")
 
