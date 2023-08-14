@@ -45,7 +45,7 @@ class HttpxServerTestSupport(ServerTestSupport):
         self.local_base_url = local_base_url
         self.remote_base_url = remote_base_url
         self._remote_communicator = communicator or HttpxRemoteCommunicator(self)
-        self._request = request
+        self.request = request
         self._httpd = None
         self.default_media_type = default_media_type
 
@@ -57,7 +57,7 @@ class HttpxServerTestSupport(ServerTestSupport):
     def httpd(self) -> HTTPServer:
         # lazy create
         if self._httpd is None:
-            self._httpd = self._request.getfixturevalue("remote_http_server")
+            self._httpd = self.request.getfixturevalue("remote_http_server")
         return self._httpd
 
     @lru_cache
@@ -177,7 +177,10 @@ class HttpxBaseActor(BaseActor):
         """Create a test object and add it to the object storage."""
         object_ = self.make_object(properties, with_id=False)
         create_activity = self.setup_activity({"type": "Create", "object": object_})
-        return create_activity["object"]
+        activity_object = create_activity["object"]
+        if isinstance(activity_object, str):
+            return self.get_json(activity_object)
+        return activity_object
 
     def setup_activity(
         self, properties: dict[str, Any] | None = None, with_id: bool = False

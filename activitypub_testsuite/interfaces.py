@@ -136,6 +136,22 @@ class Actor(Protocol):
         """Get the items from a collection with the actor's credentials"""
         ...
 
+    def assert_eventually_in_collection(
+        self, collection_uri, item_uri, tries=5, period=1
+    ) -> None:
+        """Assert that an item uri shows up in the specified collection.
+        This can be async on the server side so polling is required."""
+
+    def wait_for_collection_state(
+        self,
+        collection_uri,
+        state_predicate: Callable[[list[str]], bool],
+        tries=5,
+        period=1,
+    ) -> None:
+        """Poll a collection until the state_predicate is true or there is a timeout."""
+
+    # TODO (A) @cleanup These may not be used any more
     def add_property(self, subject: URI, pred: URI, obj: Any) -> None:
         """Add a property to an object."""
         ...
@@ -170,13 +186,13 @@ class Actor(Protocol):
 
 
 class ServerTestSupport(Protocol):
-    def get_local_actor(self) -> Actor:
+    def get_local_actor(self, actor_name: str) -> Actor:
         ...
 
-    def get_remote_actor(self) -> Actor:
+    def get_remote_actor(self, actor_name: str) -> Actor:
         ...
 
-    def get_unauthenticated_actor(self) -> Actor:
+    def get_unauthenticated_actor(self, actor_name: str) -> Actor:
         ...
 
     def get_remote_communicator(self) -> RemoteCommunicator:

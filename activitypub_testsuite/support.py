@@ -1,7 +1,8 @@
 import socket
+import time
 import uuid
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Callable
 
 from .ap import AS2_CONTEXT, get_id, get_types
 from .interfaces import DEFAULT_AP_MEDIA_TYPE, Actor, HttpResponse
@@ -107,6 +108,31 @@ class BaseActor(ABC, Actor):
     def add_to_collection(self, collection_uri: str, item_uri: str) -> None:
         """Add an item to a collection."""
         raise NotImplementedError()
+
+    def wait_for_collection_state(
+        self,
+        collection_uri,
+        state_predicate: Callable[[list[str]], bool],
+        tries=5,
+        period=1,
+    ) -> list[str]:
+        """Assert that an item uri shows up in the specified collection.
+        This can be async on the server side so polling is required."""
+        for _ in range(tries):
+            uris = self.get_collection_item_uris(collection_uri)
+            if state_predicate(uris):
+                break
+            time.sleep(period)
+        return uris
+
+    def assert_eventually_in_collection(
+        self, collection_uri, item_uri, tries=5, period=1
+    ):
+        def item_uri_observed(uris):
+            return item_uri in uris
+
+        uris = self.wait_for_collection_state(collection_uri, item_uri_observed)
+        assert item_uri in uris
 
     def get_collection_item_uris(self, collection_uri: str):
         items = []

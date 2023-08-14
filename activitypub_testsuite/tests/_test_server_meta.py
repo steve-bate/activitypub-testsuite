@@ -33,15 +33,15 @@ def test_webfinger(
 
 
 @pytest.mark.ap_capability("nodeinfo")
-def test_nodeinfo(local_base_url, local_get_json):
+def test_nodeinfo(local_base_url, local_get_json, instance_metadata):
     data = local_get_json(f"{local_base_url}/.well-known/nodeinfo")
-    assert len(data["links"]) == 2
+    assert len(data["links"]) > 0
     for link in data["links"]:
         version = link["rel"][link["rel"].rindex("/") + 1 :]
         link_data = local_get_json(link["href"])
         assert link_data["version"] == version
-        assert link_data["software"]["name"] == "actrill"
-        assert link_data["protocols"] == ["activitypub"]
+        assert link_data["software"]["name"] == instance_metadata["name"]
+        assert "activitypub" in link_data["protocols"]
         for key in ["services", "openRegistrations", "usage", "metadata"]:
             assert key in link_data
 

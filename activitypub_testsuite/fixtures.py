@@ -9,7 +9,7 @@ import tomllib
 from collections import ChainMap
 from dataclasses import dataclass
 from threading import Event, Thread
-from typing import Any, Coroutine, Mapping
+from typing import Any, Callable, Coroutine, Mapping
 from urllib.parse import urlparse
 
 import dictlib
@@ -104,6 +104,11 @@ def remote_actor3(server_support) -> Actor:
 
 
 @pytest.fixture
+def remote_actor4(server_support) -> Actor:
+    return server_support.get_remote_actor("remote_actor4")
+
+
+@pytest.fixture
 def unauthenticated_actor(server_support) -> Actor:
     return server_support.get_unauthenticated_actor()
 
@@ -188,24 +193,40 @@ AUTO_START_LOCAL_SERVER = os.environ.get("AUTO_START_LOCAL_SERVER") not in [
 ]
 
 
-def local_server_output(server: subprocess.Popen, start_event: Event):
-    line = server.stdout.readline()
-    sys.stdout.write(f"node: {line.decode()}")
-    start_event.set()
-    try:
-        while line:
-            line = server.stdout.readline()
-            sys.stdout.write(f"node: {line.decode()}")
-    except:  # noqa
-        print(f"test: server error: {sys.exc_info}")
-    finally:
-        print("test: server monitoring thread exit")
-
-
 @dataclass
 class ServerSubprocessConfig:
     args: list[str]
     cwd: str
+    start_matcher: Callable[[str], bool] | None = None
+    error_matcher: Callable[[str], bool] | None = None
+
+
+def local_server_output(
+    server: subprocess.Popen,
+    start_event: Event,
+    config: ServerSubprocessConfig,
+):
+    def readline():
+        line = server.stdout.readline().decode()
+        if config.error_matcher and config.error_matcher(line):
+            raise Exception("local server error detected")
+        return line
+
+    line = readline()
+    sys.stdout.write(f"local server: {line}")
+    try:
+        if config.start_matcher:
+            while not config.start_matcher(line):
+                line = readline()
+                sys.stdout.write(f"local server (pending match): {line}")
+        start_event.set()
+        while line:
+            line = readline()
+            sys.stdout.write(f"local server: {line}")
+    except:  # noqa
+        print(f"test: server error: {sys.exc_info()}")
+    finally:
+        print("test: server monitoring thread exit")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -222,7 +243,8 @@ def local_server_subprocess(request) -> subprocess.Popen[str]:
             ) as server:
                 start_event = Event()
                 server_output_thread = Thread(
-                    target=local_server_output, args=[server, start_event]
+                    target=local_server_output,
+                    args=[server, start_event, server_config],
                 )
                 server_output_thread.start()
                 start_event.wait(10)

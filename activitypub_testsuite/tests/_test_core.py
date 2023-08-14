@@ -128,8 +128,8 @@ def test_outbox_post(local_actor: Actor, media_type: str):
         201,
     ]  # TODO (B) @tests Make the status_code configurable
     activity_uri = response.headers["Location"]
-    outbox = local_actor.get_collection_item_uris(local_actor.outbox)
-    assert activity_uri in outbox
+
+    local_actor.assert_eventually_in_collection(local_actor.outbox, activity_uri)
 
 
 def test_outbox_post_bad_media_type(
@@ -171,12 +171,17 @@ def test_outbox_create_sets_attributedTo(case, local_actor):
 # (I'm interpreting this as merging the recipients)
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_outbox_create_merges_recipients(
-    local_actor, local_actor2, remote_actor, remote_actor2, remote_actor3
+    # only using one local actor for single user instance-compatibility
+    local_actor,
+    remote_actor,
+    remote_actor2,
+    remote_actor3,
+    remote_actor4,
 ):
     activity = local_actor.make_activity(
         {
             "type": "Create",
-            "to": local_actor2.id,
+            "to": remote_actor4.id,
             "cc": remote_actor3.id,
             "bcc": "as:Public",
             "bto": remote_actor.id,
@@ -191,7 +196,7 @@ def test_outbox_create_merges_recipients(
 
     def assert_merged_recipients(obj):
         assert isinstance(obj["to"], list) and sorted(obj["to"]) == sorted(
-            [local_actor2.id, remote_actor2.id]
+            [remote_actor4.id, remote_actor2.id]
         )
         # TODO (B) @tests Make bcc access by owner configurable
         # bcc cannot be retrieved, even by owner
@@ -240,10 +245,12 @@ def test_outbox_reverse_chrono(
 # of the user to whom the outbox belongs.
 @pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.ap_capability("c2s.outbox.post")
-def test_outbox_authentication(local_actor, local_actor2, test_config):
-    activity = local_actor2.make_activity({"object": local_actor2.make_object()})
+@pytest.mark.parametrize("other_actor", ["local_actor2", "unauthenticated_actor"])
+def test_outbox_authentication(local_actor, other_actor, test_config, request):
+    other_actor = request.getfixturevalue(other_actor)
+    activity = other_actor.make_activity({"object": other_actor.make_object()})
     # Attempt to post to local_actor outbox, should not be allowed
-    response = local_actor2.post(local_actor.outbox, activity, exception=False)
+    response = other_actor.post(local_actor.outbox, activity, exception=False)
     assert response.status_code == test_config.get("status_code") or (
         response.status_code
         in [HTTPStatus.UNAUTHORIZED.value, HTTPStatus.FORBIDDEN.value]
@@ -294,7 +301,7 @@ def test_outbox_ignore_activity_id(local_actor):
     ],
 )
 def test_outbox_requires_object_for_certain_activities(
-    activity_type: str, case: str, local_actor: Actor, local_actor2: Actor
+    activity_type: str, case: str, local_actor: Actor, remote_actor: Actor
 ):
     """Delivers activity with 'object' property if the Activity type is one
     of Create, Update, Delete, Follow, Add, Remove, Like, Block, Undo"""
@@ -310,7 +317,7 @@ def test_outbox_requires_object_for_certain_activities(
             object_ = local_actor.setup_activity(
                 {
                     "type": "Follow",
-                    "object": local_actor2.id,
+                    "object": remote_actor.id,
                 }
             )
         else:
@@ -335,7 +342,9 @@ def test_outbox_requires_object_for_certain_activities(
                 create_activity_uri = response.headers["Location"]
                 create_activity = local_actor.get_json(create_activity_uri)
                 # Retrieve the object with the server-assigned id
-                object_ = local_actor.get_json(create_activity["object"]["id"])
+                object_ = create_activity["object"]
+                if isinstance(object_, str):
+                    object_ = local_actor.get_json(object_)
 
         activity_properties["object"] = object_
 
@@ -379,7 +388,9 @@ def test_outbox_requires_object_for_certain_activities(
     [
         pytest.param(
             case,
-            marks=pytest.mark.ap_capability("s2s.activity.Add", "collections.custom"),
+            marks=pytest.mark.ap_capability(
+                "c2s.outbox.post.Add", "collections.custom"
+            ),
         )
         for case in ["with_target", "without_target"]
     ],
@@ -417,7 +428,9 @@ def test_outbox_requires_target_for_add(case: str, local_actor: Actor):
     [
         pytest.param(
             case,
-            marks=pytest.mark.ap_capability("s2s.activity.Add", "collections.custom"),
+            marks=pytest.mark.ap_capability(
+                "c2s.outbox.post.Remove", "collections.custom"
+            ),
         )
         for case in ["with_target", "without_target"]
     ],
@@ -472,16 +485,16 @@ def test_outbox_requires_target_for_remove(case: str, local_actor: Actor):
 @pytest.mark.ap_capability("s2s.outbox-post")
 def test_outbox_wraps_object_and_copies_recipients(
     local_actor: Actor,
-    local_actor2: Actor,
+    remote_actor: Actor,
 ):
     # These recipients don't make sense but they should not break anything
     obj = local_actor.make_object(
         {
-            "to": local_actor2.id,
-            "cc": local_actor2.id,
-            "bto": local_actor2.id,
-            "bcc": [local_actor.id, local_actor2.id],
-            "audience": [local_actor2.id, "as:Public"],
+            "to": remote_actor.id,
+            "cc": remote_actor.id,
+            "bto": remote_actor.id,
+            "bcc": [local_actor.id, remote_actor.id],
+            "audience": [remote_actor.id, "as:Public"],
             "name": "test object",
         }
     )
@@ -490,7 +503,11 @@ def test_outbox_wraps_object_and_copies_recipients(
 
     activity_uri = response.headers["Location"]
     activity = local_actor.get_json(activity_uri)
-    assert activity["object"]["name"] == obj["name"]
+    assert activity["type"] == "Create"
+    activity_object = activity["object"]
+    if isinstance(activity_object, "str"):
+        activity_object = local_actor.geT_json(obj)
+    assert activity_object["name"] == obj["name"]
     # FIXME (B) @tests The single values could be wrapped in a list
     assert activity["to"] == obj["to"], "wrong to"
     assert activity["cc"] == obj["cc"], "wrong cc"
@@ -502,8 +519,8 @@ def test_outbox_wraps_object_and_copies_recipients(
 
 @pytest.mark.ap_capability("s2s.inbox.get")
 def test_inbox_get(local_actor):
-    outbox = local_actor.get_collection_item_uris(local_actor.inbox)
-    assert outbox is not None  # smoke test
+    inbox = local_actor.get_collection_item_uris(local_actor.inbox)
+    assert inbox is not None  # smoke test
 
 
 # AP Section 7.1 This Activity is added by the receiver as an item
@@ -526,8 +543,7 @@ def test_inbox_post(remote_actor, local_actor, media_type: str):
 
     remote_actor.post(local_actor.inbox, activity, media_type=media_type)
 
-    inbox = local_actor.get_collection_item_uris(local_actor.inbox)
-    assert activity["id"] in inbox
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
 
 # AP Section 7.1 An HTTP POST request (with authorization of the submitting user)
@@ -603,10 +619,10 @@ def test_inbox_reverse_chrono(local_actor: Actor, remote_actor: Actor):
 def test_inbox_accept_deduplicate(local_actor: Actor, remote_actor: Actor):
     """Deduplicates activities returned by the inbox by comparing activity `id`s"""
 
-    activity = remote_actor.make_activity(
+    activity = remote_actor.setup_activity(
         {
             "type": "Create",
-            "object": remote_actor.make_object(),
+            "object": remote_actor.setup_object(),
             "to": "as:Public",
         }
     )
@@ -614,6 +630,8 @@ def test_inbox_accept_deduplicate(local_actor: Actor, remote_actor: Actor):
     # Simulate a double-post of the activity (same IRI)
     remote_actor.post(local_actor.inbox, activity)
     remote_actor.post(local_actor.inbox, activity)
+
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
     # Should only be one activity in inbox
     inbox = local_actor.get_collection_item_uris(local_actor.inbox)

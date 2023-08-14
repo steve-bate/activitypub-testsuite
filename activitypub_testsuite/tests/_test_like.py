@@ -49,6 +49,7 @@ def test_inbox_like_local(
 
 
 @pytest.mark.ap_reqlevel("SHOULD")
+@pytest.mark.ap_capability("collections.liked", "collections.likes")
 def test_outbox_like_local(local_actor: Actor):
     """Adds the object to the actor's Liked Collection."""
 
@@ -59,9 +60,6 @@ def test_outbox_like_local(local_actor: Actor):
         },
         with_id=True,
     )
-
-    if "likes" not in liked_object:
-        pytest.skip("No like collection")
 
     response = local_actor.post(
         local_actor.outbox,
@@ -75,11 +73,15 @@ def test_outbox_like_local(local_actor: Actor):
 
     like_activity_uri = response.headers["Location"]
 
-    likes = local_actor.get_collection_item_uris(get_id(liked_object["likes"]))
-    assert like_activity_uri in likes
+    local_actor.assert_eventually_in_collection(
+        local_actor.liked,
+        liked_object["id"],
+    )
 
-    liked = local_actor.get_collection_item_uris(local_actor.liked)
-    assert liked_object["id"] in liked
+    local_actor.assert_eventually_in_collection(
+        get_id(liked_object["likes"]),
+        like_activity_uri,
+    )
 
 
 def test_inbox_undo_like(
