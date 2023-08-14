@@ -34,7 +34,7 @@ This will hold the server-specific code (SAL) and possibly server-specific tests
 Other options:
   * Depend on the git repo
   * Create a submodule and depend on that
-  * (Currently, the test suite package is not published to PyPi)
+  * (Currently, the activitypub-testsuite package is not published to PyPi)
 
 ---
 [Table of Contents](toc.md)
