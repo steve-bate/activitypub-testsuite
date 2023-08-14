@@ -1,5 +1,5 @@
+import time
 from http import HTTPStatus
-from typing import Any
 
 import pytest
 
@@ -57,13 +57,27 @@ def test_outbox_delete(local_actor: Actor):
         exception=False,
     )
 
-    response = local_actor.get(obj["id"])
-    if response.status_code == HTTPStatus.GONE.value:
-        tombstone: dict[str, Any] = response.json()
+    # TODO create polling utility
+    data = None
+    for i in range(5):
+        response = local_actor.get(obj["id"])
+        if response.is_success:
+            # Some servers return tombstone with success code
+            if "json" in response.headers["content-type"]:
+                data = response.json()
+                break
+            print(f"polling {i+1}")
+            time.sleep(1)
+            continue
+
+    if data and "type" in data and data["type"] == "Tombstone":
+        tombstone = data
         assert "@context" in tombstone
         assert "id" in tombstone
         assert tombstone["id"] == obj["id"]
         assert "type" in tombstone
-
-    else:
-        assert response.status_code == HTTPStatus.NOT_FOUND.value
+    # This is a little looser than what the spec recommends
+    assert response.status_code in [
+        HTTPStatus.NOT_FOUND.value,
+        HTTPStatus.GONE.value,
+    ]

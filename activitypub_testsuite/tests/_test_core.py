@@ -167,8 +167,6 @@ def test_outbox_create_sets_attributedTo(case, local_actor):
 # SHOULD copy any recipients of the Create activity to its
 # object upon initial distribution, and likewise with copying
 # recipients from the object to the wrapping Create activity.
-#
-# (I'm interpreting this as merging the recipients)
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_outbox_create_merges_recipients(
     # only using one local actor for single user instance-compatibility
@@ -505,8 +503,8 @@ def test_outbox_wraps_object_and_copies_recipients(
     activity = local_actor.get_json(activity_uri)
     assert activity["type"] == "Create"
     activity_object = activity["object"]
-    if isinstance(activity_object, "str"):
-        activity_object = local_actor.geT_json(obj)
+    if isinstance(activity_object, str):
+        activity_object = local_actor.get_json(obj)
     assert activity_object["name"] == obj["name"]
     # FIXME (B) @tests The single values could be wrapped in a list
     assert activity["to"] == obj["to"], "wrong to"
