@@ -6,7 +6,7 @@ The ActivityPub specification seems easy to implement when one first skims the d
 
 This complexity (whether accidental or not) is a challenge for testing too.
 
-## Underspecified ActivityPub Specification
+## ActivityPub is Underspecified
 
 There are many requirements that are open to interpretation or allow behaviors that are don't appear to be consistent with the spirit of the specification. This situation leaves room for many different interpretations of key requirements. In some cases, the requirements are simple not testable.
 
