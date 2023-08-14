@@ -13,7 +13,7 @@ Currently there are a few proof-of-concept projects:
 |----------------|--------------|----------------------|
 | [onepage.pub](https://github.com/evanp/onepage.pub) | [onepage-aptesting](https://github.com/steve-bate/onepage-aptesting) | Node.js, Javascript |
 | [activitypub-express](https://github.com/immers-space/activitypub-express) | [apex-aptesting](https://github.com/steve-bate/apex-aptesting) | Node.js, Javascript |
-| [bovine](https://codeberg.org/bovine/bovine) | [bovine-testing](https://github.com/steve-bate/apex-aptesting) | Python |
+| [bovine](https://codeberg.org/bovine/bovine) | [bovine-testing](https://github.com/steve-bate/bovine-aptesting) | Python |
 | [snac2](https://github.com/Yonle/snac2) (WIP) | | C |
 
 As mentioned in the project summary, the test suite is currently focused on ActivityPub compliance testing. However, if well-defined requirements are defined for other needs like server interoperability testing, this framework is intended to support that goal in the future.
