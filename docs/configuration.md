@@ -18,12 +18,12 @@ The server capabilities can be used to skip tests automatically if the specified
 | `c2s.outbox`          | bool | C2S outbox                                                  |
 | `c2s.outbox.get`      | bool | C2S outbox GET                                              |
 | `c2s.outbox.post`     | bool | C2S outbox POST                                             |
-| `c2s.inbox.post.<name>` | bool | Specific C2S Activity type                                  |
+| `c2s.inbox.post.<name>` | bool | Specific C2S Activity type                                |
 | `s2s`                 | bool | Server-to-Server (S2S)                                      |
 | `s2s.inbox`           | bool | S2S inbox                                                   |
 | `s2s.inbox.get`       | bool | S2S inbox GET                                               |
 | `s2s.inbox.post`      | bool | S2S inbox POST                                              |
-| `s2s.inbox.post.<name>` | bool | A specific S2S Activity type                                |
+| `s2s.inbox.post.<name>` | bool | A specific S2S Activity type                              |
 | `s2s.sharedInbox`     | bool | Shared inboxes                                              |
 | `tombstones`          | bool | The server supports Tombstones for deleted objects          |
 | `collections`         | bool | Custom collections. Can also configure individual messages. |
@@ -31,7 +31,7 @@ The server capabilities can be used to skip tests automatically if the specified
 | `nodeinfo`            | bool | Nodeinfo                                                    |
 | `x_nodeinfo_2`        | bool | Nodeinfo2                                                   |
 | `host_meta`           | bool | Host Meta                                                   |
-| `poco`                | bool | ???                                                         |
+| `poco`                | bool | [Portable Contacts](https://indieweb.org/Portable_Contacts) |
 | `robots_txt`          | bool | robots.txt                                                  |
 
 ### Server Capability Template
@@ -73,6 +73,8 @@ The server capabilities can be used to skip tests automatically if the specified
 
 # Collections support - both spec'ed and custom
 # collections.default = false
+# collections.following = false
+# ... similar for other collection types
 # collections.custom = false
 
 # Other AP featuress

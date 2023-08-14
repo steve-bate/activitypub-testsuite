@@ -12,7 +12,6 @@ def test_webfinger(
     local_actor: Actor,
     local_get_json: Callable[[str], dict],
 ):
-    print(local_actor.profile)
     if "alsoKnownAs" in local_actor.profile:
         resource = local_actor.profile["alsoKnownAs"]
     elif "preferredUsername" in local_actor.profile:

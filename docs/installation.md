@@ -19,9 +19,12 @@ testing
 
 Either clone or fork the [`activitypub-testsuite`](https://github.com/steve-bate/activitypub-testsuite) repository. Fork it and then clone if you are planning to make changes and contribute them back to the upstream project.
 
+>[!Note]
+> There are more detailed installation instructions in the server-related test projects.
+
 ## Create a Server Test Project
 
-> [!NOTE]
+> [!WARNING]
 > This is currently not well-documented. In the future, I may create a project template to make this easier to set up.*
 
 (For now if you decide to do this, please reach out to me to work with you on it.)

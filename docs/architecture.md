@@ -2,6 +2,8 @@
 
 [Table of Contents](toc.md)
 
+The overall architecture is shown in the following diagram.
+
 ```mermaid
 graph LR;
   subgraph Test framework
@@ -10,6 +12,7 @@ graph LR;
   SAL --> Server["Server under test (SUT)\n(Any language)"]
 ```
 
+The test framework consists of a set of server-independent tests and a server-specific layer that allows the tests to interact with the server under test (control it and observe side-effects).
 ## Test Suite
 
 This is the core test suite. It's a library of reusable, server-independent tests that focus primarily on the [ActivityPub](https://www.w3.org/TR/activitypub/) and [ActivityStreams2](https://www.w3.org/TR/activitystreams-core/#object) specifications with a few extra tests outside that scope ([Webfinger](https://en.wikipedia.org/wiki/WebFinger), etc.). The tests are written in [Python](https://www.python.org/), but test servers can be written in any programming language. Although still evolving, the tests are intended to be be almost declarative. Eventually, they may be ported to the [Gherkin](https://cucumber.io/docs/gherkin/) syntax after the testing [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) is stable.
@@ -18,6 +21,7 @@ In the future, this test suite may be extended with more tests that are outside 
 
 The server test suite is implemented using the [`pytest`](https://docs.pytest.org/) testing framework.
 
+The tests are located in the `activitypub_testsuite/tests` subdirectory. The files are soft-linked into the server-specific test projects to run them.
 ## Server Abstraction Layer (SAL)
 
 The *SAL* is a layer of code that normalizes test fixture access to the server under test (SUT). It's analogous to the concept of a [hardware abstraction layer](https://en.wikipedia.org/wiki/Hardware_abstraction) (HAL) in an operating system.
@@ -30,6 +34,9 @@ The server under test is any server that is being tested. It can be written in a
 
 To ensure test isolation, the server may be rebuilt and restarted for each test, or it may continue running for the duration of the test suite run and only have it's state (e.g., persistent storage) reset for each test. This will vary depending on the server implementation.
 
+> [!NOTE]
+> In some contexts, this documentation refers to the SUT as the "local server". This is in contrast to the a "remote server" which is a simulated server in the test framework.
+
 ## Example Test
 
 This is a simple inbox POST test. To test the inbox POST, we need a local actor (in the SUT) and a simulated remote actor. This test specifies some metadata related to the ActivityPub requirements level (for test report generation) and the required ActivityPub capability (inbox post). It is parameterized to run for each allowed ActivityPub media type.
@@ -39,6 +46,8 @@ When the test is started, the initial server (SUT) state has no actors. The `loc
 In this this, the remote actor creates an activity (`remote_actor.setup_activity`) and posts it to the `local_actor.inbox` endpoint using the specified media type. Note that a minimal amount of information is specified to the activity and the associated object. The necessary details are provided by the actor object either through defaults or actor-specific information.
 
 The test uses the `local_actor` client (authenticated) to retrieve the inbox URIs and ensure the newly posted activity is in set of URIS.
+
+The `test_inbox_post` function arguments are *test fixtures*. The `pytest` framework will create these automatically (dependency injection). In some cases, there are significant side effects to depending on a fixture. For example, the `remote_actor` dependency may cause a simulated remote server to be created and the `local_actor` might communicate with the server under test to get information (like profile data) it needs to interact with the local server.
 
 
 ```python
@@ -60,7 +69,7 @@ def test_inbox_post(remote_actor, local_actor, media_type: str):
     assert activity["id"] in inbox
 ```
 
-Although it omits numerous details, the following sequence diagram gives an idea the processing flow for a server being tested in a subprocess.
+Although it omits numerous details, the following sequence diagram gives an idea of the processing flow for a server being tested in an SUT running in a subprocess.
 
 ```mermaid
 sequenceDiagram
