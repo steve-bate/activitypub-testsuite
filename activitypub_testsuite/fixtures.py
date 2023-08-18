@@ -8,12 +8,15 @@ import sys
 import tomllib
 from collections import ChainMap
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from importlib.metadata import version as package_version
 from threading import Event, Thread
 from typing import Any, Callable, Coroutine, Mapping
 from urllib.parse import urlparse
 
 import dictlib
 import pytest
+from pytest_metadata.plugin import metadata_key
 
 from activitypub_testsuite import tests
 from activitypub_testsuite.http.client import httpx_get
@@ -321,8 +324,10 @@ def test_config(request, testsuite_config) -> Mapping:
 
 
 @pytest.fixture(autouse=True)
-def conditionally_skip_test(test_config: Mapping, record_property):
-    record_property("target", "server")
+def conditionally_skip_test(request: pytest.FixtureRequest, test_config: Mapping):
+    if test_config:
+        # Resolve chained maps
+        request.node.stash["config"] = dict(test_config)
     skip = test_config.get("skip")
     if skip:
         pytest.skip(skip if isinstance(skip, str) else "(configured)")
@@ -379,8 +384,75 @@ def skip_without_server_capabilities(
                     )
 
 
-def pytest_collection_modifyitems(session, config, items):
-    for item in items:
-        for marker in item.iter_markers(name="ap_reqlevel"):
-            test_id = marker.args[0]
-            item.user_properties.append(("ap_reqlevel", test_id))
+#
+# Collection test metadata
+#
+
+# This is to compensate for a known unfixed bug in the json report library.
+# I wasn't motivated enough to fork the repo and fix it.
+# If there are side-effects of doing this, then I'll reconsider.
+CONFIG = None
+
+
+def pytest_runtestloop(session):
+    global CONFIG
+    CONFIG = session.config
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_modifyreport(json_report):
+    if CONFIG:
+        env = json_report["environment"]
+        env["StartTime"] = datetime.now(timezone.utc).astimezone().isoformat()
+        env.update(CONFIG.stash[metadata_key])
+        packages = env["Packages"]
+        packages["activitypub-testsuite"] = package_version("activitypub-testsuite")
+        try:
+            server_package = os.path.basename(CONFIG.rootpath)
+            packages[server_package] = package_version(server_package)
+        except:  # noqa
+            pass
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_stage(report: pytest.TestReport):
+    # Apparently accessing skip and xfail data is not well-supported
+    # by pytest, hence these kludges.
+    if report.outcome == "skipped":
+        metadata = report._json_report_extra.get("metadata")
+        if metadata is None:
+            metadata = {}
+            report._json_report_extra["metadata"] = metadata
+        if not hasattr(report, "wasxfail"):
+            metadata["reason"] = report.longrepr[2].replace("Skipped: ", "")
+        else:
+            metadata["reason"] = report.wasxfail.replace("reason: ", "")
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_metadata(item, call):
+    if call.when == "setup":
+        # Add ap_reqlevel
+        # Add ap_capabilities
+        metadata = {}
+        if "config" in item.stash:
+            metadata["config"] = item.stash["config"]
+
+        def append(key, value):
+            if key not in metadata:
+                metadata[key] = value
+            else:
+                metadata[key] += value
+
+        if isinstance(item, pytest.Function):
+            fn_name = item.name
+            if "[" in fn_name:
+                fn_name = fn_name[: fn_name.index("[")]
+            fn = getattr(item.module, fn_name)
+            if fn.__doc__:
+                metadata["documentation"] = fn.__doc__
+        for marker in item.iter_markers():
+            if marker.name in ["ap_reqlevel", "ap_capability"]:
+                append(marker.name, marker.args)
+
+        return metadata

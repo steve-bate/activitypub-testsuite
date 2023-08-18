@@ -13,6 +13,8 @@ dictlib = "^1.1.5"
 pytest-asyncio = "^0.21.1"
 cryptography = "^41.0.2"
 httpx = "^0.24.1"
+pytest-json-report = "^1.5.0"
+pytest-metadata = "^3.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -23,6 +25,9 @@ pre-commit = "^3.3.3"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins."pytest11"]
+ap_json_report = "activitypub_testsuite.plugins"
 
 [tool.isort]
 profile = "black"
