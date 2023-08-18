@@ -385,13 +385,21 @@ def skip_without_server_capabilities(
 
 
 #
-# Collection test metadata
+#  Test metadata
 #
 
 # This is to compensate for a known unfixed bug in the json report library.
 # I wasn't motivated enough to fork the repo and fix it.
 # If there are side-effects of doing this, then I'll reconsider.
 CONFIG = None
+
+PROJECT_METADATA = None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def store_report_project_metadata(report_project_metadata):
+    global PROJECT_METADATA
+    PROJECT_METADATA = report_project_metadata
 
 
 def pytest_runtestloop(session):
@@ -403,6 +411,8 @@ def pytest_runtestloop(session):
 def pytest_json_modifyreport(json_report):
     if CONFIG:
         env = json_report["environment"]
+        if PROJECT_METADATA:
+            env["Project"] = PROJECT_METADATA
         env["StartTime"] = datetime.now(timezone.utc).astimezone().isoformat()
         env.update(CONFIG.stash[metadata_key])
         packages = env["Packages"]
@@ -432,8 +442,6 @@ def pytest_json_runtest_stage(report: pytest.TestReport):
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
     if call.when == "setup":
-        # Add ap_reqlevel
-        # Add ap_capabilities
         metadata = {}
         if "config" in item.stash:
             metadata["config"] = item.stash["config"]
@@ -456,3 +464,35 @@ def pytest_json_runtest_metadata(item, call):
                 append(marker.name, marker.args)
 
         return metadata
+
+
+@pytest.fixture(autouse=True)
+def record_parametrize_data(json_metadata, request):
+    if "pytestmark" in request.node.keywords:
+        parametrize_marks = [
+            m for m in request.node.keywords["pytestmark"] if m.name == "parametrize"
+        ]
+        if parametrize_marks:
+            mark = parametrize_marks[0]
+            param_data = mark.args
+            param_names = (
+                param_data[0].split(",")
+                if isinstance(param_data[0], str)
+                else param_data[0]
+            )
+            json_metadata["params"] = {
+                p: request.getfixturevalue(p) for p in param_names
+            }
+
+
+@pytest.fixture(scope="session")
+def report_project_metadata():
+    # Anything in this dictionary will be added to the
+    # first metadata table for the test session. Some
+    # recommended data:
+    #
+    #   - "Project Name"
+    #   - "Project Description"
+    #   - "Project URL"
+    #   - "Project Notes"
+    return None

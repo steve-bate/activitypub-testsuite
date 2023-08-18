@@ -39,20 +39,20 @@ def test_nodeinfo(local_base_url, local_get_json, instance_metadata):
         version = link["rel"][link["rel"].rindex("/") + 1 :]
         link_data = local_get_json(link["href"])
         assert link_data["version"] == version
-        assert link_data["software"]["name"] == instance_metadata["name"]
+        assert link_data["software"]["name"] == instance_metadata["software"]
         assert "activitypub" in link_data["protocols"]
         for key in ["services", "openRegistrations", "usage", "metadata"]:
             assert key in link_data
 
 
 @pytest.mark.ap_capability("x-nodeinfo2")
-def test_x_nodeinfo2(instance, local_base_url, local_get_json):
+def test_x_nodeinfo2(instance_metadata, local_base_url, local_get_json):
     data = local_get_json(f"{local_base_url}/.well-known/x-nodeinfo2")
     assert data["server"]["baseUrl"] == local_base_url + (
         "/" if not local_base_url.endswith("/") else ""
     )
-    assert data["server"]["name"] == instance["name"]
-    assert data["server"]["software"] == instance["software"]
+    assert data["server"]["name"] == instance_metadata["name"]
+    assert data["server"]["software"] == instance_metadata["software"]
     assert "activitypub" in data["protocols"]
     assert "openRegistrations" in data
 

@@ -1,5 +1,8 @@
-from activitypub_testsuite.ap import get_id
+import pytest
+
+from activitypub_testsuite.ap import AS2_CONTEXT
 from activitypub_testsuite.interfaces import Actor
+from activitypub_testsuite.support import dereference
 
 # FIXME (C) @tests make this portable
 # async def test_inbox_autoaccept_follow(
@@ -28,14 +31,13 @@ from activitypub_testsuite.interfaces import Actor
 #     assert post["type"] == "Accept"
 #     assert get_id(post["object"]) == follow_activity["id"]
 
-# TODO (B) @tests Need a inbox Create idempotency test.
-
 
 def test_remote_dereference(
     remote_actor: Actor,
     local_actor: Actor,
 ):
-    # Note that object and activity are not stored in local store
+    """Tests that a server will dereference an object provided as a URI
+    in a posted inbox activity. Basic linked data requirement."""
 
     remote_object = remote_actor.setup_object()
 
@@ -45,48 +47,44 @@ def test_remote_dereference(
 
     remote_actor.post(local_actor.inbox, activity)
 
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
     items = local_actor.get_collection_item_uris(local_actor.inbox)
-    assert len(items) > 0
-    stored_activity = local_actor.get_json(items[0])
-    assert stored_activity == activity
+
+    stored_activity = dereference(local_actor, items[0])
+    stored_object = dereference(local_actor, stored_activity["object"])
+    assert stored_object["id"] == remote_object["id"]
 
 
-# class AuthorizerForTest(AuthorizationService):
-#     async def is_activity_authorized(
-#         self, principal: ActrillUser, activity: dict[str, Any]
-#     ):
-#         return AuthzDecision(True, "for testing")
+@pytest.mark.ap_capability("s2s.inbox.post")
+def test_multityped_activity_is_delivered(remote_actor: Actor, local_actor: Actor):
+    """To support extensions, a server is expected to
+    process (at least deliver) an AS2 activity with multiple types."""
+    activity = remote_actor.setup_activity(
+        {
+            "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
+            "type": ["Create", "test:InitiateChallenge"],
+            "object": "https://custom.test/game",
+        }
+    )
+
+    remote_actor.post(local_actor.inbox, activity)
+
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
+    items = local_actor.get_collection_item_uris(local_actor.inbox)
+    stored_activity = dereference(local_actor, items[0])
+    assert set(stored_activity["type"]) == set(activity["type"])
 
 
-# TODO (C) @tests Test processing of multityped activity
-# This needs special authorization support
-#
-# def test_multityped_activity_is_stored(
-#     remote_actor: Actor,
-#     local_actor: Actor,
-#     assertions: Assertions,
-# ):
-#     activity = remote_actor.make_activity(
-#         {
-#             "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
-#             "type": ["Invite", "test:Challenge"],
-#             "object": "https://custom.test/game",
-#         }
-#     )
-
-#     CoreAuthorizationService.next_auth = AuthorizerForTest()
-
-#     remote_actor.post(local_actor.inbox, activity)
-
-#     assertions.collection_contains(
-#         local_actor.inbox, activity["id"], auth=local_actor.auth
-#     )
-
-
+@pytest.mark.ap_capability("s2s.inbox.post")
 def test_activity_with_multiple_actors(
     remote_actor: Actor,
     local_actor: Actor,
 ):
+    """The ActivityStreams 2.0 specification allows multiple actors for an activity.
+    Section 4. Properties. "Describes one or more entities that either
+    performed or are expected to perform the activity. Any single activity can
+    have multiple actors." [link](https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor)
+    """
     obj = remote_actor.setup_object({"audience": "as:Public"})
 
     activity = remote_actor.setup_activity(
@@ -97,33 +95,36 @@ def test_activity_with_multiple_actors(
 
     remote_actor.post(local_actor.inbox, activity)
 
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
     items = local_actor.get_collection_item_uris(local_actor.inbox)
     assert len(items) > 0
-    stored_activity = local_actor.get_json(items[0])
-    # stored_object = local_actor.get_json(get_id(stored_activity["object"]))
+    stored_activity = dereference(local_actor, items[0])
     assert stored_activity["actor"] == activity["actor"]
 
 
+@pytest.mark.ap_capability("s2s.inbox.post")
 def test_activity_with_multiple_objects(
     remote_actor: Actor,
     local_actor: Actor,
 ):
+    """The ActivityStreams 2.0 specification defined "object" as *nonfunctional*
+    (can have multiple values)."""
     obj1 = remote_actor.setup_object({"name": "obj1", "audience": "as:Public"})
-
     obj2 = remote_actor.setup_object({"name": "obj2", "audience": "as:Public"})
 
     activity = remote_actor.setup_activity(
-        {"type": "Create", "object": [obj1, obj2], "audience": "as:Public"}
+        {
+            "type": "Create",
+            "object": [obj1, obj2],
+            "audience": "as:Public",
+        }
     )
 
     remote_actor.post(local_actor.inbox, activity)
 
-    inbox = local_actor.get_collection_item_uris(local_actor.inbox)
-    assert activity["id"] in inbox
-
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
     items = local_actor.get_collection_item_uris(local_actor.inbox)
-    assert len(items) > 0
-    stored_activity = local_actor.get_json(items[0])
-    local_actor.get_json(get_id(stored_activity["object"][0]))
-    local_actor.get_json(get_id(stored_activity["object"][1]))
+    stored_activity = dereference(local_actor, items[0])
+    assert dereference(local_actor, stored_activity["object"][0])
+    assert dereference(local_actor, stored_activity["object"][1])
     assert stored_activity["object"] == activity["object"]

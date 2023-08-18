@@ -1,0 +1,75 @@
+:root {
+    --color-passed: green;
+    --color-xfailed: chocolate;
+    --color-skipped: gray;
+    --color-failed: red;
+    --color-error: red;
+}
+
+#results-table {
+    margin-top: 4rem;
+}
+
+#results-table td:nth-child(3) {
+    white-space: nowrap;
+}
+
+.outcome.passed {
+    color: var(--color-passed);
+}
+
+.outcome.xfailed {
+    color: var(--color-xfailed);
+}
+
+.outcome.xfailed::before,
+.outcome.failed::before,
+.outcome.error::before {
+    content: "𓆦 ";
+}
+
+.outcome.skipped {
+    color: var(--color-skipped);
+}
+
+.outcome.failed {
+    color: var(--color-failed);
+}
+
+.outcome.error {
+    color: var(--color-error);
+}
+
+.test-detail {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid lightgray;
+}
+
+.test-detail h3 {
+    margin-top: 16px;
+}
+
+.test-detail h4 {
+    margin-top: 24px;
+}
+
+.test-detail label {
+    font-weight: bold;
+}
+
+.test-detail .bug {
+    color: red;
+}
+
+#results-table {
+    margin-top: 1rem;
+}
+
+#summary h2,
+#results-table h2 {
+    margin-top: 1rem;
+}
+
+.results-link {
+    margin-top: 1rem;
+}

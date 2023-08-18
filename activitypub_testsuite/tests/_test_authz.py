@@ -33,6 +33,9 @@ def test_get_public_object_allowed(
     local_actor: Actor,
     remote_actor: Actor,
 ):
+    """Checks retrieval authorization for public objects. It checks support
+    for the standard public access identifiers and for both a single value
+    and list for the recipients."""
     value = value if value_type == "str" else [value]
     local_obj = local_actor.setup_object({field: value}, with_id=True)
     response = remote_actor.get(local_obj["id"])

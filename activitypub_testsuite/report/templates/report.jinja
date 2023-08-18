@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActivityPub Test Report</title>
+    <{{ "style" }}>
+        {% include "css/w3c-base.css" %}
+        {% include "css/respec.css" %}
+        {% include "css/report.css" %}
+    </{{ "style" }}>
+</head>
+
+<body>
+    <div id="content">
+        <h1>ActivityPub Test Report</h1>
+        <div id="session">
+            <table class="simple">
+                {% if "Project" in data.environment %}
+                {% for key, value in data.environment.Project|items %}
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ value }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% for key in ["StartTime", "Python", "Platform"] %}
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ data.environment[key] }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th>Duration</th>
+                    <td>{{ data.duration | format_duration }}s</td>
+                </tr>
+            </table>
+        </div>
+        <div id="summary">
+            <h2>Summary</h2>
+            <table class="simple">
+                <thead>
+                    <tr>
+                        <th title="Number of passing testing">Passed</th>
+                        <th title="Number of failed tests">Failed</th>
+                        <th title="Number of expected failures">XFailed</th>
+                        <th title="Number of skipped tests">Skipped</th>
+                        <th title="Number of tests in total">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ data.summary.passed }}</td>
+                        <td>{{ data.summary.failed }}</td>
+                        <td>{{ data.summary.xfailed }}</td>
+                        <td>{{ data.summary.skipped }}</td>
+                        <td>{{ data.summary.total }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="results-table">
+            <h2>Results</h2>
+            <table class="simple">
+                <thead>
+                    <tr>
+                        <th>Test Name</th>
+                        <th>Req. Level</th>
+                        <th>Outcome</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in data.tests %}
+                    <tr id="{{ test | test_slug }}-row" class="result {{ test.outcome }}">
+                        <td class="name"><a href="#{{ test | test_slug }}">{{ test | test_name }}</a></td>
+                        <td class="reqlevel">{{ test | metadata_value("ap_reqlevel") }}</td>
+                        <td class="outcome {{ test.outcome }}">{{ test.outcome }}</td>
+                        <td class="duration">{{ duration_format | format(test | test_duration) }}s</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <h2>Test Details</h2>
+        <div id="test-details">
+            {% for test in data.tests %}
+            <div id="{{ test | test_slug }}" class="test-detail">
+                <h3><label>Test: </label>{{ test | test_name }}</h3>
+                {% if "metadata" in test and test.metadata.config %}
+                {% set test_config = test.metadata.config %}
+                {% set reason = test_config.xfail or test_config.skipped %}
+                {% set is_bug = test_config.bug %}
+                {% endif %}
+                <div class="outcome">
+                    <label>Outcome:</label>
+                    <span class="outcome {{ test.outcome }}">{{ test.outcome }}</span>
+                    {% if reason %}(<span class="reason">{{ reason }}</span>){% endif %}
+                </div>
+                {% if "metadata" in test and test.metadata.documentation %}
+                <div class="description note">
+                    {{ test.metadata.documentation }}
+                </div>
+                {% endif %}
+                {% if "metadata" in test and test.metadata.ap_reqlevel %}
+                <div class "reqlevel"><label>Requirement Level:</label> {{ test.metadata.ap_reqlevel[0] }}</div>
+                {% endif %}
+                {% if "metadata" in test and test.metadata.params %}
+                {% set params = test.metadata.params %}
+                <div class="params">
+                    <h4>Test Parameters</h4>
+                    <table class="simple">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in params|items %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                {% if "metadata" in test and test.metadata.ap_capability %}
+                {% set caps = test.metadata.ap_capability %}
+                <div class="capabilities">
+                    <h4>Required Capabilities</h4>
+                    <ul>
+                        {% for cap in caps %}
+                        <li>{{ cap }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <div class="stages">
+                    <h4>Test Stages</h4>
+                    <table class="simple">
+                        <thead>
+                            <tr>
+                                <th>Stage</th>
+                                <th>Outcome</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stage_name in ["setup", "call", "teardown"] %}
+                            {% if stage_name in test %}
+                            {% set stage = test[stage_name] %}
+                            <tr>
+                                <td>{{ stage_name }}</td>
+                                <td class="outcome {{stage.outcome}}">{{ stage.outcome }}</td>
+                                <td>{{ stage.duration | format_duration }}s</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="results-link">
+                    <a href="#{{ test | test_slug }}-row">Results ⤴</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>

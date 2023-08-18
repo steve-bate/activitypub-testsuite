@@ -240,3 +240,11 @@ def find_available_tcp_port(start_port: int, end_port: int) -> int | None:
         finally:
             sock.close()
     return None
+
+
+def dereference(actor: Actor, obj: [dict | str]):
+    if isinstance(obj, str):
+        return actor.get_json(obj)
+    if "type" in obj and obj["type"] == "Link":
+        return actor.get_json(obj["href"])
+    return obj
