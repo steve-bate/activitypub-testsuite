@@ -201,15 +201,20 @@ class ServerSubprocessConfig:
     error_matcher: Callable[[str], bool] | None = None
 
 
-def local_server_output(
+_server_error: bool = False
+
+
+def monitor_server_output(
     server: subprocess.Popen,
     start_event: Event,
     config: ServerSubprocessConfig,
 ):
     def readline():
+        global _server_error
         line = server.stdout.readline().decode()
         if config.error_matcher and config.error_matcher(line):
-            raise Exception("local server error detected")
+            _server_error = True
+            raise Exception(f"local server error detected: {line}")
         return line
 
     line = readline()
@@ -243,7 +248,7 @@ def local_server_subprocess(request) -> subprocess.Popen[str]:
             ) as server:
                 start_event = Event()
                 server_output_thread = Thread(
-                    target=local_server_output,
+                    target=monitor_server_output,
                     args=[server, start_event, server_config],
                 )
                 server_output_thread.start()
@@ -258,6 +263,15 @@ def local_server_subprocess(request) -> subprocess.Popen[str]:
             yield
     else:
         yield
+
+
+@pytest.fixture(autouse=True)
+def check_server_state(test_config):
+    global _server_error
+    _server_error = False
+    yield
+    if "xfail" not in test_config and _server_error:
+        pytest.fail("Server error detected")
 
 
 def install_as_link():
