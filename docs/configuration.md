@@ -89,6 +89,8 @@ The server capabilities can be used to skip tests automatically if the specified
 # host-meta = false
 # portable_contacts = false  # poco
 # robots_txt = false
+
+# iri = false
 ```
 
 ## Test Configuration
