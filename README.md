@@ -46,9 +46,8 @@ After running the test suite, a test report can be generated to document the res
 
 ### Report Screenshots
 
-![Test Summary](docs/report1.png)
-
-![Test Details](docs/report2.png)
+<img src="docs/report1.png" height="400">
+<img src="docs/report2.png" height="400">
 
 
 ## Contributing
