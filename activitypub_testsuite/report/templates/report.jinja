@@ -74,7 +74,8 @@
                 <tbody>
                     {% for test in data.tests %}
                     <tr id="{{ test | test_slug }}-row" class="result {{ test.outcome }}">
-                        <td class="name"><a href="#{{ test | test_slug }}">{{ test | test_name }}</a></td>
+                        <td class="name"><a class="outcome {{ test.outcome }}" href="#{{ test | test_slug }}">{{ test |
+                                test_name }}</a></td>
                         <td class="reqlevel">{{ test | metadata_value("ap_reqlevel") }}</td>
                         <td class="outcome {{ test.outcome }}">{{ test.outcome }}</td>
                         <td class="duration">{{ duration_format | format(test | test_duration) }}s</td>
@@ -96,8 +97,13 @@
                 <div class="outcome">
                     <label>Outcome:</label>
                     <span class="outcome {{ test.outcome }}">{{ test.outcome }}</span>
-                    {% if reason %}(<span class="reason">{{ reason }}</span>){% endif %}
                 </div>
+                {% if not reason and "call" in test and test.call.crash %}
+                {% set reason = test.call.crash.message %}
+                {% endif %}
+                {% if reason %}
+                <div class="reason"><label>Reason: </label><span class="reason">{{ reason }}</span></div>
+                {% endif %}
                 {% if "metadata" in test and test.metadata.documentation %}
                 <div class="description note">
                     {{ test.metadata.documentation }}

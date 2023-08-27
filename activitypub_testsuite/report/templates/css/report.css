@@ -28,6 +28,12 @@
     content: "𓆦 ";
 }
 
+a.outcome.xfailed::before,
+a.outcome.failed::before,
+a.outcome.error::before {
+    content: none;
+}
+
 .outcome.skipped {
     color: var(--color-skipped);
 }
