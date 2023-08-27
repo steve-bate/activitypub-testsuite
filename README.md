@@ -40,7 +40,16 @@ To encourage running the tests often, the test suite should run as fast as possi
 
 Other goals are to make it easy to add new tests and to make it as easy as possible to write a test driver layer for new server implementations.
 
-See also: [Additional Documentation](docs/toc.md)
+After running the test suite, a test report can be generated to document the results. The report includes the test outcomes, test documentation, test parameters (if any), required capabilities for the test and more.
+
+### [See also: Additional Documentation](docs/toc.md)
+
+### Report Screenshots
+
+![Test Summary](docs/report1.png)
+
+![Test Details](docs/report2.png)
+
 
 ## Contributing
 
