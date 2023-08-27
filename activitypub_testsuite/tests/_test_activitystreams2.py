@@ -6,7 +6,7 @@ import pytest
 
 from activitypub_testsuite.ap import SECURITY_CONTEXT
 from activitypub_testsuite.interfaces import Actor
-from activitypub_testsuite.support import dereference
+from activitypub_testsuite.support import dereference, get_id
 
 
 def test_empty_array_is_omitted_or_null(local_actor: Actor):
@@ -16,7 +16,7 @@ def test_empty_array_is_omitted_or_null(local_actor: Actor):
     inbox = local_actor.get_json(local_actor.inbox)
     if "orderedItems" not in inbox:
         if "first" in inbox:
-            inbox = local_actor.get_json(inbox["first"])
+            inbox = local_actor.get_json(get_id(inbox["first"]))
     if "orderedItems" in inbox:
         assert inbox["orderedItems"] != []
     # Missing orderedItems property is a pass
