@@ -39,10 +39,10 @@ def test_remote_dereference(
     """Tests that a server will dereference an object provided as a URI
     in a posted inbox activity. Basic linked data requirement."""
 
-    remote_object = remote_actor.setup_object()
+    remote_object = remote_actor.setup_object({"to": "as:Public"})
 
     activity = remote_actor.setup_activity(
-        {"type": "Create", "object": remote_object["id"], "audience": "as:Public"}
+        {"type": "Create", "object": remote_object["id"], "to": "as:Public"}
     )
 
     remote_actor.post(local_actor.inbox, activity)
@@ -64,6 +64,7 @@ def test_multityped_activity_is_delivered(remote_actor: Actor, local_actor: Acto
             "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
             "type": ["Create", "test:InitiateChallenge"],
             "object": "https://custom.test/game",
+            "to": "as:Public",
         }
     )
 

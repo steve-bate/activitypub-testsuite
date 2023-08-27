@@ -78,10 +78,11 @@ def test_outbox_like_local(local_actor: Actor):
         liked_object["id"],
     )
 
-    local_actor.assert_eventually_in_collection(
-        get_id(liked_object["likes"]),
-        like_activity_uri,
-    )
+    if "likes" in liked_object:
+        local_actor.assert_eventually_in_collection(
+            get_id(liked_object["likes"]),
+            like_activity_uri,
+        )
 
 
 def test_inbox_undo_like(

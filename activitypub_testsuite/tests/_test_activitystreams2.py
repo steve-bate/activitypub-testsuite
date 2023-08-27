@@ -47,7 +47,7 @@ def test_assumes_default_context(remote_actor: Actor, local_actor: Actor):
     local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
 
-@pytest.mark.ap_capability("s2s.inbox.post")
+@pytest.mark.ap_capability("s2s.inbox.post", "iri")
 def test_map_iris(remote_actor: Actor, local_actor: Actor):
     # TODO (C) This is currently a smoke test
     """AS2 2.2 - when an IRI that is not also a URI is given
@@ -82,7 +82,7 @@ def test_map_iris(remote_actor: Actor, local_actor: Actor):
     assert obj["url"] == mapped_uri
 
 
-@pytest.mark.ap_capability("s2s.inbox.post")
+@pytest.mark.ap_capability("s2s.inbox.post", "iri")
 def test_dont_map_iris_for_ids(remote_actor: Actor, local_actor: Actor):
     # TODO (C) This is currently a smoke test
     """AS2 2.2 - when an IRI that is not also a URI is given
