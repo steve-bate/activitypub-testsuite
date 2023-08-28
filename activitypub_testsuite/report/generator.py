@@ -7,7 +7,7 @@ import jinja2
 from activitypub_testsuite.report.filters import configure_filters
 
 
-def main(json_report_filename, *, browser=False):
+def main(json_report_filename, html_report_filename=None, *, browser=False):
     base_dir = os.path.dirname(os.path.realpath(__file__))
     templates = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.join(base_dir, "templates"))
@@ -20,10 +20,16 @@ def main(json_report_filename, *, browser=False):
             data=json_report,
             duration_format="%0.3f",
         )
-        if browser:
-            with open("/tmp/test_report.html", "w") as fp:
+
+        if browser and html_report_filename is None:
+            html_report_filename = "report.html"
+
+        if html_report_filename:
+            html_report_filename = os.path.abspath(html_report_filename)
+            with open(html_report_filename, "w") as fp:
                 fp.write(content)
-            webbrowser.open("file:///tmp/test_report.html", new=0)
+            if browser:
+                webbrowser.open("file://" + html_report_filename)
         else:
             print(content)
 
