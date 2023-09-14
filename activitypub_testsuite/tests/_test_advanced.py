@@ -56,7 +56,9 @@ def test_remote_dereference(
 
 
 @pytest.mark.ap_capability("s2s.inbox.post")
-def test_multityped_activity_is_delivered(remote_actor: Actor, local_actor: Actor):
+def test_multityped_activity_is_delivered_to_inbox(
+    remote_actor: Actor, local_actor: Actor
+):
     """To support extensions, a server is expected to
     process (at least deliver) an AS2 activity with multiple types."""
     activity = remote_actor.setup_activity(
@@ -72,6 +74,75 @@ def test_multityped_activity_is_delivered(remote_actor: Actor, local_actor: Acto
 
     local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
     items = local_actor.get_collection_item_uris(local_actor.inbox)
+    stored_activity = dereference(local_actor, items[0])
+    assert set(stored_activity["type"]) == set(activity["type"])
+
+
+@pytest.mark.ap_capability("s2s.outbox.post")
+def test_multityped_activity_is_delivered_to_outbox(local_actor: Actor):
+    """To support extensions, a server is expected to
+    process (at least deliver) an AS2 activity with multiple types."""
+    activity = local_actor.make_activity(
+        {
+            "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
+            "type": ["Create", "test:InitiateChallenge"],
+            "object": "https://custom.test/game",
+            "to": "as:Public",
+        }
+    )
+
+    local_actor.post(local_actor.outbox, activity)
+
+    local_actor.assert_eventually_in_collection(local_actor.outbox, activity["id"])
+    items = local_actor.get_collection_item_uris(local_actor.outbox)
+    stored_activity = dereference(local_actor, items[0])
+    assert set(stored_activity["type"]) == set(activity["type"])
+
+
+@pytest.mark.ap_capability("s2s.inbox.post")
+def test_multityped_object_is_delivered_to_inbox(
+    remote_actor: Actor, local_actor: Actor
+):
+    """To support extensions, a server is expected to
+    process (at least deliver) an AS2 object with multiple types."""
+    activity = remote_actor.setup_activity(
+        {
+            "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
+            "type": ["Create"],
+            "object": remote_actor.setup_object(
+                {"type": ["Note", "https://custom.test#Frob"]}
+            ),
+            "to": "as:Public",
+        }
+    )
+
+    remote_actor.post(local_actor.inbox, activity)
+
+    local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
+    items = local_actor.get_collection_item_uris(local_actor.inbox)
+    stored_activity = dereference(local_actor, items[0])
+    assert set(stored_activity["type"]) == set(activity["type"])
+
+
+@pytest.mark.ap_capability("s2s.outbox.post")
+def test_multityped_object_is_delivered_to_outbox(local_actor: Actor):
+    """To support extensions, a server is expected to
+    process (at least deliver) an AS2 activity with multiple types."""
+    activity = local_actor.setup_activity(
+        {
+            "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
+            "type": ["Create"],
+            "object": local_actor.setup_object(
+                {"type": ["Note", "https://custom.test#Frob"]}
+            ),
+            "to": "as:Public",
+        }
+    )
+
+    local_actor.post(local_actor.outbox, activity)
+
+    local_actor.assert_eventually_in_collection(local_actor.outbox, activity["id"])
+    items = local_actor.get_collection_item_uris(local_actor.outbox)
     stored_activity = dereference(local_actor, items[0])
     assert set(stored_activity["type"]) == set(activity["type"])
 
