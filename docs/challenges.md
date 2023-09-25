@@ -8,13 +8,13 @@ This complexity (whether accidental or not) is a challenge for testing too.
 
 ## ActivityPub is Underspecified
 
-There are many requirements that are open to interpretation or allow behaviors that are don't appear to be consistent with the spirit of the specification. This situation leaves room for many different interpretations of key requirements. In some cases, the requirements are simple not testable.
+There are many requirements that are open to interpretation or allow behaviors that are don't appear to be consistent with the spirit of the specification. This situation leaves room for many different interpretations of key requirements. In some cases, the requirements are simply not testable.
 
 One example is related to the AP `inbox`. A server is required to add activities posted to the `inbox` network endpoint to an `OrderedCollection`. The intent seems to be that clients can read their `inbox` collection to find posts they have received. Other actors might also be able to see public posts in other actor's inboxes.
 
 However, the specification says implementations should filter inbox queries based on the permissions of the requester. This is reasonable. However, it allows two degenerate cases. The first is that there is no filtering, even for private messages. In other words, the implementation is not required to do *any* filtering. The other case is that *no actor* (not even the inbox owner) is allowed to view *any* inbox activities. This is the Mastodon implementation. They return an HTTP 404 (Not Found) status for all `inbox` queries. Neither behavior is desirable, but they are allowed.
 
-t's going to be challenging to create server-independent inbox requirements tests when an AP server has no inbox (just a POST endpoint) and discards activities immediately after processing them. It's technically spec-compliant behavior (other than, maybe, the 404 status), but I doubt that was the intent of the spec authors. It's a little concerning to me that a large majority of ActivityPub instances in the AP federation operate this way.
+It's going to be challenging to create server-independent inbox requirements tests when an AP server has no inbox (just a POST endpoint) and discards activities immediately after processing them. It's technically spec-compliant behavior (other than, maybe, the 404 status), but I doubt that was the intent of the spec authors. It's a little concerning to me that a large majority of ActivityPub instances in the AP federation operate this way.
 
 This makes it difficult to create a test that posts an activity to an inbox and then checks that the activity was delivered to the "inbox" of the local recipients. There are also no activities in Mastodon. Therefore, there is no way to test if an activity was delivered to an inbox because it doesn't even make sense in that context.
 
@@ -30,7 +30,8 @@ Some of the most popular servers have relatively complex deployment architecture
 
 Many servers will accept a message and then pass it to an asynchronous work queue for further processing. Depending on the server, little or no validation is done prior to handing it off to the work queue. If the activity is later rejected there's no feedback to the publisher.
 
-In some cases, the tests must poll for data to finish processing. Given these servers won't have much data and no other users, hopefully the asynchronous processing finishes in a reasonable amount of it. It may not be possible to detect a rejected activity other than with a timeout (which will slow down the test suite).
+In some cases, the tests must poll for data to finish processing. Given these servers won't have much data and no other users, hopefully the asynchronous processing finishes in a reasonable amount of time. It may not be possible to detect a rejected activity other than with a timeout (which will slow down the test suite).
+
 ## Interoperability Testing
 
 This test suite focuses on ActivityPub (AP) compliance. However, that's not what many developers want. Most servers implement a very limited subset of ActivityPub (and ActivityStreams 2). In many cases, the developers care less about AP compliance and more about how to interoperate with some specific server implementations (that may not be compliant themselves). The tests in this suite will not be especially useful for that purpose, but the framework could potentially be used to support interoperability testing, *if* baseline interoperability requirements exist.

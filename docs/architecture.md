@@ -73,7 +73,7 @@ Although it omits numerous details, the following sequence diagram gives an idea
 
 ```mermaid
 sequenceDiagram
-    box navy Test Suite
+    box Test Suite
         actor test as Test
         actor local_actor
         actor remote_actor
