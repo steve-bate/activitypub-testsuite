@@ -2,6 +2,7 @@ import socket
 import time
 import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any, Callable
 
 from .ap import AS2_CONTEXT, get_id, get_types
@@ -248,3 +249,7 @@ def dereference(actor: Actor, obj: [dict | str]):
     if "type" in obj and obj["type"] == "Link":
         return actor.get_json(obj["href"])
     return obj
+
+
+def rfc3339_datetime(ts: datetime = datetime.now()):
+    return ts.astimezone().isoformat()

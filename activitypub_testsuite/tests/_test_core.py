@@ -4,7 +4,6 @@
 # from threading import Barrier, Condition
 
 # import httpx
-from datetime import datetime
 from http import HTTPStatus
 from typing import Any, cast
 
@@ -20,6 +19,7 @@ from activitypub_testsuite.ap import (
     is_ordered_collection,
 )
 from activitypub_testsuite.interfaces import Actor
+from activitypub_testsuite.support import rfc3339_datetime
 
 # AP Section 3.2 - The HTTP GET method may be dereferenced against
 # an object's id property to retrieve the activity.
@@ -531,9 +531,7 @@ def test_inbox_post(remote_actor, local_actor, media_type: str):
     activity = remote_actor.setup_activity(
         {
             "to": local_actor.id,
-            "object": remote_actor.make_object(
-                {"published": datetime.now().isoformat()}
-            ),
+            "object": remote_actor.make_object({"published": rfc3339_datetime()}),
         }
     )
 
@@ -569,9 +567,7 @@ def test_inbox_post_bad_media_type(remote_actor, local_actor):
     activity = remote_actor.make_activity(
         {
             "to": local_actor.id,
-            "object": remote_actor.make_object(
-                {"published": datetime.now().isoformat()}
-            ),
+            "object": remote_actor.make_object({"published": rfc3339_datetime()}),
         }
     )
 
