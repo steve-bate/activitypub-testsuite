@@ -254,7 +254,7 @@ class HttpxRemoteActor(HttpxBaseActor):
         key_id = f"{self.actor_id}#main-key"
         self.public_key, self.private_key = get_key_pair()
         auth = HTTPSignatureAuth(key_id, self.private_key) if authenticated else None
-        super().__init__(server, self.get_profile(key_id), auth)
+        super().__init__(server, self.get_profile(key_id, actor_name), auth)
         self.httpd = server.httpd
         self.httpd.serve_objects(
             self.profile,
@@ -275,7 +275,7 @@ class HttpxRemoteActor(HttpxBaseActor):
         type_ns = "_".join(get_types(for_object)).lower()
         return f"{self.actor_base_url}/{type_ns}/{uuid.uuid4()}"
 
-    def get_profile(self, key_id: str):
+    def get_profile(self, key_id: str, actor_name: str):
         return {
             "@context": [AS2_CONTEXT, SECURITY_CONTEXT],
             "id": self.actor_id,
@@ -283,7 +283,7 @@ class HttpxRemoteActor(HttpxBaseActor):
             "inbox": f"{self.actor_id}/inbox",
             "outbox": f"{self.actor_id}/outbox",
             # snac will show the post as anonymous if this is not set
-            "preferredUsername": "remote_actor",
+            "preferredUsername": actor_name,
             "publicKey": {
                 "id": key_id,
                 "owner": self.actor_id,
