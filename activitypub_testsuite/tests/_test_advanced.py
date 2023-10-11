@@ -1,6 +1,6 @@
 import pytest
 
-from activitypub_testsuite.ap import AS2_CONTEXT
+from activitypub_testsuite.ap import AS2_CONTEXT, get_id
 from activitypub_testsuite.interfaces import Actor
 from activitypub_testsuite.support import dereference
 
@@ -86,16 +86,22 @@ def test_multityped_activity_is_delivered_to_outbox(local_actor: Actor):
         {
             "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
             "type": ["Create", "test:InitiateChallenge"],
-            "object": "https://custom.test/game",
+            "object": {
+                "type": "Note",
+                "name": "A game",
+            },
             "to": "as:Public",
         }
     )
 
-    local_actor.post(local_actor.outbox, activity)
+    response = local_actor.post(local_actor.outbox, activity)
+    stored_activity = dereference(local_actor, response.headers["Location"])
 
-    local_actor.assert_eventually_in_collection(local_actor.outbox, activity["id"])
+    local_actor.assert_eventually_in_collection(
+        local_actor.outbox, stored_activity["id"]
+    )
     items = local_actor.get_collection_item_uris(local_actor.outbox)
-    stored_activity = dereference(local_actor, items[0])
+    assert items[0] == stored_activity["id"]
     assert set(stored_activity["type"]) == set(activity["type"])
 
 
@@ -108,7 +114,7 @@ def test_multityped_object_is_delivered_to_inbox(
     activity = remote_actor.setup_activity(
         {
             "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
-            "type": ["Create"],
+            "type": "Create",
             "object": remote_actor.setup_object(
                 {"type": ["Note", "https://custom.test#Frob"]}
             ),
@@ -139,12 +145,15 @@ def test_multityped_object_is_delivered_to_outbox(local_actor: Actor):
         }
     )
 
-    local_actor.post(local_actor.outbox, activity)
+    response = local_actor.post(local_actor.outbox, activity)
+    stored_activity = dereference(local_actor, response.headers["Location"])
 
-    local_actor.assert_eventually_in_collection(local_actor.outbox, activity["id"])
-    items = local_actor.get_collection_item_uris(local_actor.outbox)
-    stored_activity = dereference(local_actor, items[0])
-    assert set(stored_activity["type"]) == set(activity["type"])
+    local_actor.assert_eventually_in_collection(
+        local_actor.outbox, stored_activity["id"]
+    )
+
+    stored_object = dereference(local_actor, get_id(stored_activity["object"]))
+    assert get_id(stored_activity["object"]) == get_id(stored_object)
 
 
 @pytest.mark.ap_capability("s2s.inbox.post")

@@ -63,10 +63,16 @@ class BaseActor(ABC, Actor):
             activity["id"] = self.make_uri(activity)
         return activity
 
+    @abstractmethod
     def setup_activity(
         self, properties: dict[str, Any] | None = None
     ) -> dict[str, Any]:
-        raise NotImplementedError()
+        """Set up an activity so that it can be retrieved from a local/remote server."""
+
+    # TODO Review the arguments for setup_object abstract method
+    @abstractmethod
+    def setup_object(self, properties: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Set up an object so that it can be retrieved from a local/remote server."""
 
     def make_collection(
         self,
