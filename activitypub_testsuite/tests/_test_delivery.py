@@ -29,6 +29,8 @@ def test_outbox_delivery_local(local_actor, recipient_key, local_actor2):
     response = local_actor.post(local_actor.outbox, activity)
     activity_uri = response.headers["Location"]
 
+    # TODO Review all collection queries to be sure their using polling
+    # FIXME This should be using polling
     inbox = local_actor2.get_collection_item_uris(local_actor2.inbox)
     assert activity_uri in inbox
 
