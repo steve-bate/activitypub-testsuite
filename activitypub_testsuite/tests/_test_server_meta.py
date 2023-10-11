@@ -27,7 +27,7 @@ def test_webfinger(
         link.get("type") == "application/activity+json" for link in data["links"]
     )
     for link in data["links"]:
-        if link["type"] == "application/activity+json":
+        if link.get("type") == "application/activity+json":
             assert link["href"] == local_actor.id
 
 
