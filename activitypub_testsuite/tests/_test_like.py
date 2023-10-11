@@ -126,9 +126,9 @@ def test_inbox_undo_like(
             {
                 "type": "Undo",
                 "object": remote_like_activity["id"],
-            }
+            },
+            with_id=True,
         ),
-        with_id=True,
     )
 
     likes = local_actor.get_collection_item_uris(get_id(local_liked_object))
