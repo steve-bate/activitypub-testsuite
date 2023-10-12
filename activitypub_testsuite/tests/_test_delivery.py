@@ -14,7 +14,7 @@ from activitypub_testsuite.interfaces import Actor, RemoteCommunicator
         "to",
         "cc",
         "bcc",
-        "cc",
+        "bto",
         pytest.param("audience", marks=pytest.mark.ap_capability("audience")),
     ],
 )
