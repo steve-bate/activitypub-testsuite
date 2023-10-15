@@ -1,8 +1,13 @@
 import pytest
 
+from activitypub_testsuite.interfaces import Actor
+from activitypub_testsuite.support import is_unauthorized
+
 
 @pytest.mark.ap_capability("c2s.outbox.post.Block")
-def test_actor_blocking(local_actor, remote_actor, remote_actor2):
+def test_actor_blocking(
+    local_actor: Actor, remote_actor: Actor, remote_actor2: Actor, test_config
+):
     remote_actor.post(
         local_actor.inbox,
         remote_actor.setup_activity({"object": remote_actor.setup_object()}),
@@ -30,7 +35,7 @@ def test_actor_blocking(local_actor, remote_actor, remote_actor2):
     # More post attempts
 
     # This actor should be blocked
-    remote_actor.post(
+    response = remote_actor.post(
         local_actor.inbox,
         remote_actor.setup_activity(
             {
@@ -43,8 +48,7 @@ def test_actor_blocking(local_actor, remote_actor, remote_actor2):
     )
 
     # Some servers (apex) return a 200 OK for a blocked post
-    # TODO (B) @tests Make this status configurable
-    # assert response.status_code == HTTPStatus.FORBIDDEN.value
+    assert is_unauthorized(response.status_code, test_config.get("status_code"))
 
     # This post should not reach the recipient's inbox
     remote_actor2.post(
@@ -52,7 +56,7 @@ def test_actor_blocking(local_actor, remote_actor, remote_actor2):
         remote_actor2.setup_activity({"object": remote_actor2.setup_object()}),
     )
 
-    inbox_items = local_actor.get_collection_item_uris(local_actor.inbox)
-
-    # Only one more in the inbox
-    assert len(inbox_items) == 3
+    # Only one more item added to the inbox
+    local_actor.wait_for_collection_state(
+        local_actor.inbox, lambda inbox: len(inbox) == 3
+    )

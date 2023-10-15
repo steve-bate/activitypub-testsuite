@@ -1,9 +1,16 @@
+import calendar
+import re
 import socket
 import time
 import uuid
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from email.message import Message
+from http import HTTPStatus
+from typing import Any, Callable, SupportsIndex
+
+import rfc3987
 
 from .ap import AS2_CONTEXT, get_id, get_types
 from .interfaces import DEFAULT_AP_MEDIA_TYPE, Actor, HttpResponse
@@ -259,3 +266,191 @@ def dereference(actor: Actor, obj: [dict | str]):
 
 def rfc3339_datetime(ts: datetime = datetime.now()):
     return ts.astimezone().isoformat()
+
+
+@dataclass
+class MediaDescriptor:
+    mime_type: str
+    mime_subtype: str
+    params: dict
+    mime_suffix: str | None
+    mime_tree: str | None
+
+
+def xsplit(
+    value: str, sep: str | None = None, maxsplit: SupportsIndex = -1
+) -> list[str]:
+    return [x.strip() for x in value.split(sep, maxsplit)]
+
+
+def parse_accept_header(header_value: str) -> list[MediaDescriptor]:
+    """RFC2616 parser"""
+    accepted = []
+    for entry in xsplit(header_value, ","):
+        params = {}
+        if ";" in entry:
+            fields = xsplit(entry, ";")
+            media_range = fields[0]
+            for p in fields[1:]:
+                if "=" in p:
+                    key, value = xsplit(p, "=", 1)
+                    if key == "q":
+                        value = float(value)
+                    params[key] = value
+                else:
+                    params[key] = True
+        else:
+            media_range = entry
+        if "q" not in params:
+            params["q"] = 1
+        type_, subtype = media_range.split("/")
+        accepted.append(
+            MediaDescriptor(mime_type=type_, mime_subtype=subtype, params=params)
+        )
+    return sorted(accepted, key=lambda x: (x.params["q"], x.mime_subtype), reverse=True)
+
+
+def parse_content_type(content_type: str) -> MediaDescriptor:
+    """Based on RDF1341 and using Python email module"""
+    email = Message()
+    email["content-type"] = content_type
+    params = email.get_params()
+    mime_type, mime_subtype_info = params[0][0].split("/")
+    if "." in mime_subtype_info:
+        mime_tree, mime_subtype_info = mime_subtype_info.rsplit(".", 1)
+    else:
+        mime_tree = None
+    if "+" in mime_subtype_info:
+        mime_subtype, mime_suffix = xsplit(mime_subtype_info, "+", 1)
+    else:
+        mime_subtype = mime_subtype_info
+        mime_suffix = None
+    return MediaDescriptor(
+        mime_type=mime_type,
+        mime_subtype=mime_subtype,
+        mime_tree=mime_tree,
+        mime_suffix=mime_suffix,
+        params=dict(params[1:]),
+    )
+
+
+#
+# Validate URIs per RFC3987
+#
+
+
+def validate_uri(uri: str) -> bool:
+    ...
+
+
+#
+# Validator for AS2 variant of RFC3339
+#
+
+RFC3339_REGEX = re.compile(
+    r"""
+    ^
+    (\d{4})      # Year
+    -
+    (0[1-9]|1[0-2]) # Month
+    -
+    (\d{2})          # Day
+    T
+    (?:[01]\d|2[0123]) # Hours
+    :
+    (?:[0-5]\d)     # Minutes
+    (?:
+        :
+        (?:[0-5]\d)     # Seconds (optional in AS2)
+        (?:\.\d+)       # Secfrac
+    )?
+    (?:  Z                              # UTC
+       | [+-](?:[01]\d|2[0123]):[0-5]\d # Offset
+    )
+    $
+""",
+    re.VERBOSE,
+)
+
+
+def validate_as2_rfc3339(date_string):
+    """
+    Validates dates against RFC3339 datetime format
+    Leap seconds are no supported.
+    """
+    m = RFC3339_REGEX.match(date_string)
+    if m is None:
+        return False
+    year, month, day = map(int, m.groups())
+    if not year:
+        # Year 0 is not valid a valid date
+        return False
+    (_, max_day) = calendar.monthrange(year, month)
+    if not 1 <= day <= max_day:
+        return False
+    return True
+
+
+DATETIME_FIELDS = {
+    "published",
+    "closed",  # Can also be Object|Link|boolean
+    "updated",
+    "deleted",
+    "startTime",
+    "endTime",
+}
+
+
+def validate_iri(iri: str):
+    rfc3987.parse(iri)
+
+
+def validate_date_times(entity: dict) -> None:
+    """AS2 Section 2.3 - All properties with date and time
+    values must conform to the "date-time" production in [RFC3339] with
+    the one exception that seconds may be omitted.
+    An uppercase "T" character must be used to separate date and time,
+    and an uppercase "Z" character must be used in the absence
+    of a numeric time zone offset."""
+    for field in DATETIME_FIELDS:
+        if field in entity:
+            value = entity[field]
+            if field != "closed":
+                # All datetime fields except "close"
+                # Validate rfc3339 conformance
+                if not validate_as2_rfc3339(value):
+                    raise Exception(f"Invalid datetime for '{field}': {value}")
+            else:
+                # "closed" is special
+                if isinstance(field, str):
+                    # Is a URI or a date?
+                    if not validate_as2_rfc3339(value):
+                        # RFC 3987 - See if it appears to be a URI
+                        try:
+                            validate_iri(value)
+                        except ValueError:
+                            # It wasn't a valid URI so assume it was
+                            # supposed to be a date time
+                            raise Exception(f"Invalid datetime for 'close': {value}")
+
+
+def is_unauthorized(status_code: int, other_code: int | None = None):
+    return (
+        status_code
+        in [
+            HTTPStatus.FORBIDDEN.value,
+            HTTPStatus.UNAUTHORIZED.value,
+        ]
+        or status_code == other_code
+    )
+
+
+def as2_equals(value1: Any, value2: Any) -> bool:
+    """Check for various combinations of arrays and literals"""
+    if value1 == value2:
+        return True
+    if not isinstance(value1, list):
+        value1 = [value1]
+    if not isinstance(value2, list):
+        value2 = [value2]
+    return value1 == value2

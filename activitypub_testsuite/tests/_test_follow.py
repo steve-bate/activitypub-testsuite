@@ -114,7 +114,6 @@ def test_inbox_undo_follow(
     # Remote actor request to follow local actor
     remote_actor.post(local_actor.inbox, follow_activity)
 
-    # TODO (C) @test-api Support optional auto-follow
     # Local actor accepts remote follow
     local_actor.post(
         local_actor.outbox,

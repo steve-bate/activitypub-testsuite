@@ -17,7 +17,7 @@ ALLOWED_AP_MEDIA_TYPES = {
 
 OTHER_AP_MEDIA_TYPES = {
     # TODO (C) @config Support customizing AP media types
-    # These is not official AP media type strings but
+    # These are not official AP media type strings but
     # ExpressJS apps seems to provide them.
     "application/ld+json",
 }

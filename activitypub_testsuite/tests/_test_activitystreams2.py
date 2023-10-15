@@ -6,7 +6,7 @@ import pytest
 
 from activitypub_testsuite.ap import SECURITY_CONTEXT
 from activitypub_testsuite.interfaces import Actor
-from activitypub_testsuite.support import dereference, get_id
+from activitypub_testsuite.support import get_id
 
 
 def test_empty_array_is_omitted_or_null(local_actor: Actor):
@@ -47,13 +47,20 @@ def test_assumes_default_context(remote_actor: Actor, local_actor: Actor):
     local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
 
+@pytest.mark.skip("TODO Requirement is unclear")
 @pytest.mark.ap_capability("s2s.inbox.post", "iri")
 def test_map_iris(remote_actor: Actor, local_actor: Actor):
-    # TODO (C) This is currently a smoke test
     """AS2 2.2 - when an IRI that is not also a URI is given
     for dereferencing, it must be mapped to a URI using the
     steps in Section 3.1 of [RFC3987] and (2) when an IRI is
     serving as an "id" value, it must not be so mapped."""
+
+    # This requirement is not clear. It seems that any URI "given"
+    # for dereferencing" would be an "id" for some object. It's
+    # not clear if "dereferencing" is being used in the sense of
+    # retrieval, in general. This test currently assumes that
+    # interpretation.
+
     remote_object = remote_actor.setup_object()
     remote_object["url"] = "https://en.wiktionary.org/wiki/Ῥόδος"
     # maps to...
@@ -72,19 +79,20 @@ def test_map_iris(remote_actor: Actor, local_actor: Actor):
 
     local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
-    # TODO (B) Add utility to retrieve objects from a collection
-    inbox = local_actor.get_json(local_actor.inbox)
-    if "orderedItems" not in inbox and "first" in inbox:
-        inbox = local_actor.get_json(inbox["first"])
-    activity = dereference(local_actor, inbox["orderedItems"][0])
-    obj = dereference(local_actor, activity["object"])
-    mapped_uri = "https://en.wiktionary.org/wiki/%E1%BF%AC%CF%8C%CE%B4%CE%BF%CF%82"
-    assert obj["url"] == mapped_uri
+    # It's not clear what the local actor is expected to do here.
+
+    # local_actor.assert_eventually_in_collection(local_actor.inbox, activity[])
+    # inbox = local_actor.get_json(local_actor.inbox)
+    # if "orderedItems" not in inbox and "first" in inbox:
+    #     inbox = local_actor.get_json(inbox["first"])
+    # activity = dereference(local_actor, inbox["orderedItems"][0])
+    # obj = dereference(local_actor, activity["object"])
+    # mapped_uri = "https://en.wiktionary.org/wiki/%E1%BF%AC%CF%8C%CE%B4%CE%BF%CF%82"
+    # assert obj["url"] == mapped_uri
 
 
 @pytest.mark.ap_capability("s2s.inbox.post", "iri")
 def test_dont_map_iris_for_ids(remote_actor: Actor, local_actor: Actor):
-    # TODO (C) This is currently a smoke test
     """AS2 2.2 - when an IRI that is not also a URI is given
     for dereferencing, it must be mapped to a URI using the
     steps in Section 3.1 of [RFC3987] and (2) when an IRI is
@@ -108,16 +116,19 @@ def test_dont_map_iris_for_ids(remote_actor: Actor, local_actor: Actor):
     local_actor.assert_eventually_in_collection(local_actor.inbox, activity["id"])
 
 
-# (Not testable? No test required a date time. Could maybe check validation?)
-# AS2 Section 2.3 - All properties with date and time
-# values must conform to the "date-time" production in [RFC3339] with
-# the one exception that seconds may be omitted.
-#
-# An uppercase "T" character must be used to separate date and time,
-#  and an uppercase "Z" character must be used in the absence
-# of a numeric time zone offset.
+# No requirement actually mandates a datetime field in a message
+# Ideally we'd automatically check each activity and object being returned by
+# the local actor (server under test) for proper date times and not clutter up
+# the tests themselves.
 
-# (Not testable?)
+# TODO Integrate an activity / object validator that has special checks for dates, etc.
+
+# Is this testable?
+# Apparently, the only requirements for link relations is that the string
+# is space-delimited and case insensitive. It seems like *any* string will
+# be valid without further knowledge of the actual link relation types that
+# are expected.
+#
 # AS2 4.2 - To promote interoperability, Activity Streams
 # 2.0 implementations must only use link relations that are
 # syntactically valid in terms of both the [RFC5988]

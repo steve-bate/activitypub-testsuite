@@ -20,7 +20,6 @@ def test_webfinger(
         resource = f"acct:{username}@{netloc}"
     else:
         pytest.fail("Can't determine resource to query")
-    # TODO (C) @tests How to locate or generate the webfinger resource identifier
     data = local_get_json(f"{local_base_url}/.well-known/webfinger?resource={resource}")
     assert data["subject"] == resource
     assert any(

@@ -4,33 +4,6 @@ from activitypub_testsuite.ap import AS2_CONTEXT, get_id
 from activitypub_testsuite.interfaces import Actor
 from activitypub_testsuite.support import dereference
 
-# FIXME (C) @tests make this portable
-# async def test_inbox_autoaccept_follow(
-#     local_actor: Actor,
-#     remote_actor: Actor,
-#     remote_communicator: RemoteCommunicator,
-# ):
-#     follow_activity = remote_actor.make_activity(
-#         {"type": "Follow", "object": local_actor.id}
-#     )
-
-#     ap_plugins.AUTO_ACCEPT_FOLLOW = True
-#     try:
-#         remote_actor.post(
-#             local_actor.inbox,
-#             follow_activity,
-#         )
-#     finally:
-#         ap_plugins.AUTO_ACCEPT_FOLLOW = False
-
-#     # Assuming local_actor will use httpx to post response
-#     request = next(
-#         r for r in remote_communicator.requests if r.url == remote_actor.inbox
-#     )
-#     post = request.json
-#     assert post["type"] == "Accept"
-#     assert get_id(post["object"]) == follow_activity["id"]
-
 
 def test_remote_dereference(
     remote_actor: Actor,

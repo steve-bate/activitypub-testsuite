@@ -19,15 +19,15 @@ from activitypub_testsuite.ap import (
     is_ordered_collection,
 )
 from activitypub_testsuite.interfaces import Actor
-from activitypub_testsuite.support import rfc3339_datetime
-
-# AP Section 3.2 - The HTTP GET method may be dereferenced against
-# an object's id property to retrieve the activity.
-# (assuming this is a must.)
+from activitypub_testsuite.support import as2_equals, rfc3339_datetime
 
 
+# It could make sense to split this into two tests
+@pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.parametrize("media_type", ALLOWED_AP_MEDIA_TYPES)
 def test_get_object_allowed_media_types(local_actor: Actor, media_type):
+    """AP Section 3.2 - The HTTP GET method may be dereferenced against
+    an object's id property to retrieve the activity."""
     local_obj = local_actor.setup_object(
         {
             "to": "as:Public",
@@ -49,23 +49,16 @@ def test_get_object_allowed_media_types(local_actor: Actor, media_type):
     assert_id_and_type(cast(dict[str, Any], response.json()))
 
 
-# TODO (B) @tests Test missing @context filling
-# Move test to activitystreams module
-
-# AS2 Section 2.1.3 When a JSON-LD enabled Activity Streams 2.0
-# implementation encounters a JSON document identified using the
-# " application/activity+json" MIME media type, and that document
-# does not contain a @context property whose value includes a
-# reference to the normative Activity Streams 2.0 JSON-LD
-# @context definition, the implementation must assume that
-# the normative @context definition still applies.
-# (Does this apply to other AP media types?)
-
-# AS2 requirement
-# Add @context if it's missing
-
-
 def test_missing_context_is_added(local_actor):
+    """AS2 Section 2.1.3 When a JSON-LD enabled Activity Streams 2.0
+    implementation encounters a JSON document identified using the
+    "application/activity+json" MIME media type, and that document
+    does not contain a @context property whose value includes a
+    reference to the normative Activity Streams 2.0 JSON-LD
+    @context definition, the implementation must assume that
+    the normative @context definition still applies."""
+    # Does this apply to other common AP media types?
+
     activity = local_actor.make_activity(
         {
             "type": "Create",
@@ -84,6 +77,8 @@ def test_missing_context_is_added(local_actor):
 
 @pytest.mark.ap_reqlevel("MUST")
 def test_required_actor_properties(local_actor):
+    """Actor objects MUST have, in addition to the properties mandated by 3.1 Object
+    Identifiers, the following properties: `inbox` and `outbox`"""
     profile = local_actor.get_json(local_actor.id)
     assert profile["id"] == local_actor.id
     assert_id_and_type(profile)
@@ -101,32 +96,36 @@ def test_outbox_get(local_actor):
     assert outbox is not None  # smoke test
 
 
-# AP Section 6. Client to server interaction takes place through clients posting
-# Activities to an actor's outbox. To do this, clients MUST discover the URL
-# of the actor's outbox from their profile and then MUST make an HTTP
-# POST request to this URL with the Content-Type of application/ld+json;
-# profile="https://www.w3.org/ns/activitystreams".
-#
-# AP Section 6. unless the activity is transient, MUST include
-# the new id in the Location header.
-#
-# AP Section 6. The server MUST then add this new Activity to the outbox collection.
-# Confusing caveat and wording: (However, there is no guarantee that time the Activity
-# may appear in the outbox. The Activity might appear after a delay or
-# disappear at any period).
-# The delay makes sense because of async processing. Not sure about the disappearing
-# part. They may be saying that the outbox contains all *non-transient* activities
-# produced by an actor.
 @pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.ap_capability("c2s.outbox.post")
 @pytest.mark.parametrize("media_type", ALLOWED_AP_MEDIA_TYPES)
-def test_outbox_post(local_actor: Actor, media_type: str):
+def test_outbox_post(local_actor: Actor, media_type: str, test_config):
+    """AP Section 6. Client to server interaction takes place through clients posting
+    Activities to an actor's outbox. To do this, clients MUST discover the URL
+    of the actor's outbox from their profile and then MUST make an HTTP
+    POST request to this URL with the Content-Type of application/ld+json;
+    profile="https://www.w3.org/ns/activitystreams".
+
+    AP Section 6. unless the activity is transient, MUST include
+    the new id in the Location header.
+
+    AP Section 6. The server MUST then add this new Activity to the outbox collection.
+    """
+
+    # Confusing caveat and wording: (However, there is no guarantee that time the
+    # Activity may appear in the outbox. The Activity might appear after a delay or
+    # disappear at any period).
+    #
+    # The delay makes sense because of async processing. Not sure about the disappearing
+    # part. They may be saying that the outbox contains all *non-transient* activities
+    # produced by an actor.
+
     activity = local_actor.make_activity({"object": local_actor.make_object()})
     response = local_actor.post(local_actor.outbox, activity, media_type=media_type)
     assert response.status_code in [
         200,
         201,
-    ]  # TODO (B) @tests Make the status_code configurable
+    ] or response.status_code == test_config.get("status_code")
     activity_uri = response.headers["Location"]
 
     local_actor.assert_eventually_in_collection(local_actor.outbox, activity_uri)
@@ -474,17 +473,19 @@ def test_outbox_requires_target_for_remove(case: str, local_actor: Actor):
         assert response.is_error
 
 
-# AP Section 6.2.1 - The server MUST accept a valid [ActivityStreams]
-# object that isn't a subtype of Activity in the POST request to the outbox.
-#
-# AP Section 6.2.1 - Any to, bto, cc, bcc, and audience properties
-# specified on the object MUST be copied over to the new Create activity by the server.
 @pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.ap_capability("s2s.outbox-post")
 def test_outbox_wraps_object_and_copies_recipients(
     local_actor: Actor,
     remote_actor: Actor,
 ):
+    """AP Section 6.2.1 - The server MUST accept a valid [ActivityStreams]
+    object that isn't a subtype of Activity in the POST request to the outbox.
+
+    AP Section 6.2.1 - Any to, bto, cc, bcc, and audience properties
+    specified on the object MUST be copied over to the new
+    Create activity by the server."""
+
     # These recipients don't make sense but they should not break anything
     obj = local_actor.make_object(
         {
@@ -506,9 +507,9 @@ def test_outbox_wraps_object_and_copies_recipients(
     if isinstance(activity_object, str):
         activity_object = local_actor.get_json(obj)
     assert activity_object["name"] == obj["name"]
-    # FIXME (B) @tests The single values could be wrapped in a list
-    assert activity["to"] == obj["to"], "wrong to"
-    assert activity["cc"] == obj["cc"], "wrong cc"
+    # Some servers will send single-element arrays even if original value was a string
+    assert as2_equals(activity["to"], obj["to"]), "wrong to"
+    assert as2_equals(activity["cc"], obj["cc"]), "wrong cc"
     # TODO (B) @tests bcc, bto cannot be retrieved even by owner. Make it configurable.
     # assert activity["bto"] == obj["cc"], "wrong bto"
     # assert sorted(activity["bcc"]) == sorted(obj["bcc"]), "wrong bcc"
