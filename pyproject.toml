@@ -9,7 +9,7 @@ packages = [{ include = "activitypub_testsuite" }]
 [tool.poetry.dependencies]
 python = "^3.11"
 dictlib = "^1.1.5"
-cryptography = "^41.0.2"
+cryptography = "^43.0.1"
 httpx = "^0.24.1"
 pytest-json-report = "^1.5.0"
 pytest-metadata = "^3.0.0"
