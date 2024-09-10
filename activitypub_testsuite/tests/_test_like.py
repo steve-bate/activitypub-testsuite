@@ -3,7 +3,7 @@ import pytest
 from activitypub_testsuite.ap import get_id
 from activitypub_testsuite.interfaces import Actor
 
-
+@pytest.mark.ap_capability("s2s.inbox.post.Like")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_inbox_like_local(
     remote_actor: Actor,
@@ -48,6 +48,7 @@ def test_inbox_like_local(
     )
 
 
+@pytest.mark.ap_capability("s2s.inbox.post.Like")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_outbox_like_local(local_actor):
     """AP 6.8 Like Activity. The Like activity indicates the actor likes the object.
@@ -91,6 +92,7 @@ def test_outbox_like_local(local_actor):
     #     )
 
 
+@pytest.mark.ap_capability("s2s.inbox.post.Like")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_inbox_undo_like(
     local_actor: Actor,
@@ -156,6 +158,8 @@ def test_inbox_undo_like(
     )
 
 
+@pytest.mark.ap_capability("s2s.inbox.post.Like")
+@pytest.mark.ap_capability("s2s.inbox.post.Undo")
 def test_outbox_undo_like(
     local_actor: Actor,
     remote_actor: Actor,

@@ -27,6 +27,8 @@ class HttpResponse(Protocol):
     def is_error(self) -> bool:
         ...
 
+    def raise_for_status(self):
+        ...
 
 class HttpRequestError(Exception):
     def __init__(self, message, response):
@@ -189,7 +191,7 @@ class ServerTestSupport(Protocol):
     def get_local_actor(self, actor_name: str) -> Actor:
         ...
 
-    def get_remote_actor(self, actor_name: str) -> Actor:
+    def get_remote_actor(self, actor_name: str | None = None) -> Actor:
         ...
 
     def get_unauthenticated_actor(self, actor_name: str) -> Actor:

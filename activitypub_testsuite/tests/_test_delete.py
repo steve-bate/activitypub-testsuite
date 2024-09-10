@@ -34,7 +34,7 @@ def test_inbox_delete(remote_actor: Actor, local_actor: Actor):
     response = local_actor.get(obj["id"])
     assert response.status_code == HTTPStatus.NOT_FOUND.value
 
-
+@pytest.mark.ap_capability("s2s.outbox.post.Delete")
 def test_outbox_delete(local_actor: Actor):
     obj = local_actor.setup_object(
         {

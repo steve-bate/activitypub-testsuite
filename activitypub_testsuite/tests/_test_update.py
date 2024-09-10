@@ -13,6 +13,7 @@ import pytest
 # server's representation of the object.
 
 
+@pytest.mark.ap_capability("c2s.outbox.post.Update.partial")
 @pytest.mark.ap_reqlevel("NOT_CLEAR")
 def test_outbox_partial_update(local_actor):
     original_object = local_actor.setup_object(

@@ -130,7 +130,7 @@ def test_outbox_post(local_actor: Actor, media_type: str, test_config):
 
     local_actor.assert_eventually_in_collection(local_actor.outbox, activity_uri)
 
-
+@pytest.mark.ap_capability("c2s.outbox.post")
 def test_outbox_post_bad_media_type(
     local_actor: Actor,
 ):
@@ -146,6 +146,7 @@ def test_outbox_post_bad_media_type(
 
 # AP Section 6.2 When a Create activity is posted, the actor of the activity
 # SHOULD be copied onto the object's attributedTo field.
+@pytest.mark.ap_capability("c2s.outbox.post")
 @pytest.mark.ap_reqlevel("SHOULD")
 @pytest.mark.parametrize("case", ["with_actor", "without_actor"])
 def test_outbox_create_sets_attributedTo(case, local_actor):
@@ -166,6 +167,7 @@ def test_outbox_create_sets_attributedTo(case, local_actor):
 # SHOULD copy any recipients of the Create activity to its
 # object upon initial distribution, and likewise with copying
 # recipients from the object to the wrapping Create activity.
+@pytest.mark.ap_capability("c2s.outbox.post")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_outbox_create_merges_recipients(
     # only using one local actor for single user instance-compatibility
@@ -212,6 +214,7 @@ def test_outbox_create_merges_recipients(
 # AP Section 5 - An OrderedCollection MUST be presented consistently
 # in reverse chronological order.
 # AP Section 5.1 - The outbox MUST be an OrderedCollection.
+@pytest.mark.ap_capability("c2s.outbox.post")
 @pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.ap_capability("c2s.activity.Create", "c2s.outbox.post", "c2s.outbox.get")
 def test_outbox_reverse_chrono(
@@ -610,6 +613,7 @@ def test_inbox_reverse_chrono(local_actor: Actor, remote_actor: Actor):
 # AP Section 5.1 -- The server MUST perform de-duplication of activities
 # returned by the inbox. Such deduplication MUST be performed by comparing
 # the id of the activities and dropping any activities already seen
+@pytest.mark.ap_capability("s2s.inbox.post")
 @pytest.mark.ap_reqlevel("MUST")
 def test_inbox_accept_deduplicate(local_actor: Actor, remote_actor: Actor):
     """Deduplicates activities returned by the inbox by comparing activity `id`s"""

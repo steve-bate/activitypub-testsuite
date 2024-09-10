@@ -6,7 +6,10 @@ from activitypub_testsuite.interfaces import Actor, RemoteCommunicator
 
 
 @pytest.mark.ap_reqlevel("SHOULD")
-@pytest.mark.ap_capability("s2s.inbox.post.Accept", "collections.following")
+@pytest.mark.ap_capability(
+    "s2s.inbox.post.Accept",
+    "collections.following",
+)
 def test_inbox_accept_local_follow_add_actor_to_following(
     local_actor: Actor, remote_actor: Actor
 ):
@@ -38,7 +41,10 @@ def test_inbox_accept_local_follow_add_actor_to_following(
 
 
 @pytest.mark.ap_reqlevel("SHOULD")
-@pytest.mark.ap_capability("s2s.inbox.post.Accept", "collections.followers")
+@pytest.mark.ap_capability(
+    "s2s.inbox.post.Accept",
+    "collections.followers",
+)
 def test_inbox_accept_remote_follow_add_actor_to_followers(
     local_actor: Actor, remote_actor: Actor
 ):
@@ -69,7 +75,10 @@ def test_inbox_accept_remote_follow_add_actor_to_followers(
 
 
 @pytest.mark.ap_reqlevel("MUST")
-@pytest.mark.ap_capability("s2s.inbox.post.Reject", "collections.following")
+@pytest.mark.ap_capability(
+    "s2s.inbox.post.Reject",
+    "collections.following",
+)
 def test_inbox_reject_of_local_follow_doesnt_add_actor_to_following(
     local_actor: Actor,
     remote_actor: Actor,
@@ -100,7 +109,10 @@ def test_inbox_reject_of_local_follow_doesnt_add_actor_to_following(
     assert remote_actor.id not in following
 
 
-@pytest.mark.ap_capability("collections.followers")
+@pytest.mark.ap_capability(
+    "s2s.inbox.post.Undo.Follow",
+    "collections.followers",
+)
 def test_inbox_undo_follow(
     remote_actor: Actor, local_actor: Actor, remote_communicator: RemoteCommunicator
 ):
@@ -152,7 +164,10 @@ def test_inbox_undo_follow(
     assert len(followers) == 0, "Follower not removed"
 
 
-@pytest.mark.ap_capability("collections.following")
+@pytest.mark.ap_capability(
+    "s2s.outbox.post.Undo.Follow",
+    "collections.following",
+)
 def test_outbox_undo_follow(local_actor: Actor, remote_actor: Actor):
     follow_activity = local_actor.setup_activity(
         {

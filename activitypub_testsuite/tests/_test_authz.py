@@ -6,6 +6,7 @@ from activitypub_testsuite.ap import PUBLIC_VALUES, RECIPIENT_FIELDS, get_id
 from activitypub_testsuite.interfaces import Actor
 
 
+@pytest.mark.ap_capability("dereferencing")
 @pytest.mark.parametrize(
     "field,value,value_type",
     [
@@ -42,6 +43,7 @@ def test_get_public_object_allowed(
     assert response.is_success
 
 
+@pytest.mark.ap_capability("dereferencing")
 def test_get_nonpublic_object_forbidden(
     local_actor: Actor, unauthenticated_actor: Actor
 ):
@@ -53,23 +55,27 @@ def test_get_nonpublic_object_forbidden(
     ]
 
 
+@pytest.mark.ap_capability("dereferencing")
 def test_get_object_by_attributedTo(local_actor: Actor):
     local_obj = local_actor.setup_object({"attributedTo": local_actor.id}, with_id=True)
     response = local_actor.get(local_obj["id"])
     assert response.is_success
 
 
+@pytest.mark.ap_capability("dereferencing")
 def test_get_actor_allowed(unauthenticated_actor: Actor, local_actor: Actor):
     response = unauthenticated_actor.get(local_actor.id)
     print(response)
     assert response.is_success
 
 
+@pytest.mark.ap_capability("c2s.outbox.get")
 def test_get_outbox_allowed(unauthenticated_actor: Actor, local_actor: Actor):
     response = unauthenticated_actor.get(local_actor.outbox)
     assert response.is_success
 
 
+@pytest.mark.ap_capability("s2s.inbox.get")
 def test_get_inbox_nonauth_filtered(
     unauthenticated_actor: Actor,
     remote_actor: Actor,
@@ -100,18 +106,26 @@ def test_get_inbox_nonauth_filtered(
         assert private_obj["id"] not in inbox
 
 
-@pytest.mark.parametrize("box", ["inbox", "outbox"])
+@pytest.mark.parametrize(
+    "box",
+    [
+        pytest.param("inbox", marks=pytest.mark.ap_capability("s2s.inbox.get")),
+        pytest.param("inbox", marks=pytest.mark.ap_capability("s2s.inbox.get")),
+    ],
+)
 def test_get_box_by_owner(box: str, local_actor: Actor):
     response = local_actor.get(get_id(local_actor.profile[box]))
     assert response.is_success
 
 
+@pytest.mark.ap_capability("dereferencing")
 def test_get_object_by_posting_actor(local_actor: Actor):
     object_ = local_actor.setup_object({"attributedTo": local_actor.id})
     response = local_actor.get(object_["id"])
     assert response.is_success
 
 
+@pytest.mark.ap_capability("s2s.inbox.post")
 def test_anon_inbox_post_disallowed(unauthenticated_actor: Actor, local_actor: Actor):
     activity = unauthenticated_actor.make_activity(
         {"object": unauthenticated_actor.make_object(with_id=True)}, with_id=True
@@ -120,6 +134,7 @@ def test_anon_inbox_post_disallowed(unauthenticated_actor: Actor, local_actor: A
     assert response.status_code in [HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN.value]
 
 
+@pytest.mark.ap_capability("s2s.outbox.post")
 def test_nonowner_outbox_post_disallowed(
     local_actor: Actor, local_actor2: Actor, test_config
 ):

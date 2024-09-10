@@ -78,7 +78,11 @@ class BaseActor(ABC, Actor):
 
     # TODO Review the arguments for setup_object abstract method
     @abstractmethod
-    def setup_object(self, properties: dict[str, Any] | None = None) -> dict[str, Any]:
+    def setup_object(
+        self,
+        properties: dict[str, Any] | None = None,
+        with_id: bool = False,
+    ) -> dict[str, Any]:
         """Set up an object so that it can be retrieved from a local/remote server."""
 
     def make_collection(
@@ -339,8 +343,7 @@ def parse_content_type(content_type: str) -> MediaDescriptor:
 #
 
 
-def validate_uri(uri: str) -> bool:
-    ...
+def validate_uri(uri: str) -> bool: ...
 
 
 #
