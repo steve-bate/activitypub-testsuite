@@ -49,8 +49,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-/.report.json
-/report.html
+/test-report.json
+/test-report.html
 cover/
 
 # Translations

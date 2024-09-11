@@ -125,9 +125,10 @@ def test_get_object_by_posting_actor(local_actor: Actor):
     assert response.is_success
 
 
-@pytest.mark.ap_capability("s2s.inbox.post")
+@pytest.mark.ap_capability("s2s.inbox.post.Create")
 def test_anon_inbox_post_disallowed(unauthenticated_actor: Actor, local_actor: Actor):
     activity = unauthenticated_actor.make_activity(
+        # Create
         {"object": unauthenticated_actor.make_object(with_id=True)}, with_id=True
     )
     response = unauthenticated_actor.post(local_actor.inbox, activity, exception=False)

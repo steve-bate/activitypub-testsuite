@@ -22,7 +22,7 @@ def main(json_report_filename, html_report_filename=None, *, browser=False):
         )
 
         if browser and html_report_filename is None:
-            html_report_filename = "report.html"
+            html_report_filename = "test-report.html"
 
         if html_report_filename:
             html_report_filename = os.path.abspath(html_report_filename)
