@@ -549,7 +549,7 @@ def test_inbox_post(remote_actor, local_actor, media_type: str):
 # AP Section 7.1 An HTTP POST request (with authorization of the submitting user)
 # is then made to the inbox, with the Activity as the body of the request.
 @pytest.mark.ap_reqlevel("UNSPECIFIED")
-@pytest.mark.ap_capability("c2s.outbox.post")
+@pytest.mark.ap_capability("s2s.inbox.post")
 def test_inbox_authorization(local_actor, unauthenticated_actor, test_config):
     # Only authenticated actors can post to inbox
     activity = unauthenticated_actor.make_activity(
@@ -570,6 +570,7 @@ def test_inbox_post_bad_media_type(remote_actor, local_actor):
     # No recipients other than inbox owner
     activity = remote_actor.make_activity(
         {
+            "type": "Create",
             "to": local_actor.id,
             "object": remote_actor.make_object({"published": rfc3339_datetime()}),
         }
@@ -584,7 +585,7 @@ def test_inbox_post_bad_media_type(remote_actor, local_actor):
 
 
 @pytest.mark.ap_reqlevel("MUST")
-@pytest.mark.ap_capability("s2s.activity.Create")
+@pytest.mark.ap_capability("s2s.inbox.post.Create")
 def test_inbox_reverse_chrono(local_actor: Actor, remote_actor: Actor):
     """An OrderedCollection MUST be presented consistently
     in reverse chronological order."""

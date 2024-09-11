@@ -64,7 +64,7 @@ def test_outbox_delivery_local(local_actor, recipient_key, local_actor2):
         pytest.param("audience", marks=pytest.mark.ap_capability("audience")),
     ],
 )
-async def test_outbox_delivery_remote(
+def test_outbox_delivery_remote(
     local_actor: Actor,
     recipient_key: str,
     remote_actor: Actor,

@@ -10,7 +10,7 @@ packages = [{ include = "activitypub_testsuite" }]
 python = "^3.11"
 dictlib = "^1.1.5"
 cryptography = "^43.0.1"
-httpx = "^0.24.1"
+httpx = "^0.27.0"
 pytest-json-report = "^1.5.0"
 pytest-metadata = "^3.0.0"
 jinja2 = "^3.1.2"
@@ -21,8 +21,8 @@ pytest-asyncio = "^0.24.0"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.7.0"
-ruff = "^0.0.278"
+black = "^24.0.0"
+ruff = "0.6.4"
 pre-commit = "^3.3.3"
 
 [build-system]

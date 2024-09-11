@@ -135,7 +135,7 @@ def test_anon_inbox_post_disallowed(unauthenticated_actor: Actor, local_actor: A
     assert response.status_code in [HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN.value]
 
 
-@pytest.mark.ap_capability("s2s.outbox.post")
+@pytest.mark.ap_capability("c2s.outbox.post")
 def test_nonowner_outbox_post_disallowed(
     local_actor: Actor, local_actor2: Actor, test_config
 ):

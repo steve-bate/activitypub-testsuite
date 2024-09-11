@@ -59,7 +59,7 @@ def local_base_url(local_server_port, local_server_url_scheme):
 
 @pytest.fixture
 def local_actor(server_support) -> Actor:
-    return server_support.get_local_actor()
+    return server_support.get_local_actor("local_actor")
 
 
 @pytest.fixture

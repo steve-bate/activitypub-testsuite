@@ -7,7 +7,7 @@ from activitypub_testsuite.interfaces import Actor, RemoteCommunicator
 
 @pytest.mark.ap_reqlevel("SHOULD")
 @pytest.mark.ap_capability(
-    "s2s.inbox.post.Accept",
+    "s2s.inbox.post.Accept.Follow",
     "collections.following",
 )
 def test_inbox_accept_local_follow_add_actor_to_following(
@@ -42,7 +42,7 @@ def test_inbox_accept_local_follow_add_actor_to_following(
 
 @pytest.mark.ap_reqlevel("SHOULD")
 @pytest.mark.ap_capability(
-    "s2s.inbox.post.Accept",
+    "s2s.inbox.post.Accept.Follow",
     "collections.followers",
 )
 def test_inbox_accept_remote_follow_add_actor_to_followers(
@@ -76,7 +76,7 @@ def test_inbox_accept_remote_follow_add_actor_to_followers(
 
 @pytest.mark.ap_reqlevel("MUST")
 @pytest.mark.ap_capability(
-    "s2s.inbox.post.Reject",
+    "s2s.inbox.post.Reject.Follow",
     "collections.following",
 )
 def test_inbox_reject_of_local_follow_doesnt_add_actor_to_following(
@@ -165,7 +165,7 @@ def test_inbox_undo_follow(
 
 
 @pytest.mark.ap_capability(
-    "s2s.outbox.post.Undo.Follow",
+    "c2s.outbox.post.Undo.Follow",
     "collections.following",
 )
 def test_outbox_undo_follow(local_actor: Actor, remote_actor: Actor):

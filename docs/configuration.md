@@ -18,7 +18,7 @@ The server capabilities can be used to skip tests automatically if the specified
 | `c2s.outbox`          | bool | C2S outbox                                                  |
 | `c2s.outbox.get`      | bool | C2S outbox GET                                              |
 | `c2s.outbox.post`     | bool | C2S outbox POST                                             |
-| `c2s.inbox.post.<name>` | bool | Specific C2S Activity type                                |
+| `c2s.outbox.post.<name>` | bool | Specific C2S Activity type                                |
 | `s2s`                 | bool | Server-to-Server (S2S)                                      |
 | `s2s.inbox`           | bool | S2S inbox                                                   |
 | `s2s.inbox.get`       | bool | S2S inbox GET                                               |
