@@ -2,19 +2,13 @@
 
 Server-independent, full-automated test suite primary focused on ActivityPub server compliance testing.
 
+> [!NOTE]
+> The original proof-of-concept projects have been retired. Although a few PRs were accepted for issues found with the test framework, the project developers were mostly disinterested. I'll be focusing on using the test framework to test my own server implementation called [FIRM](https://github.com/steve-bate/firm)
+
 > [!WARNING]
 > This is an exploratory proof-of-concept. It works, but if you're looking for a simple, easy-to-use, low effort tool, this isn't it. The current documentation is minimal and mostly intended to support collaboration with server developers rather than to support the creation of test support code for new servers. If there's enough interest, that will change over time.
 
 Note that this project is not a standalone test suite project. It is designed to be used by server-specific test projects that implement test support code (and possibly additional tests) specific to that server.
-
-Currently there are a few proof-of-concept projects:
-
-| Server Project | Test Project | Server Programming Language |
-|----------------|--------------|----------------------|
-| [onepage.pub](https://github.com/evanp/onepage.pub) | [onepage-aptesting](https://github.com/steve-bate/onepage-aptesting) | Node.js, Javascript |
-| [activitypub-express](https://github.com/immers-space/activitypub-express) | [apex-aptesting](https://github.com/steve-bate/apex-aptesting) | Node.js, Javascript |
-| [bovine](https://codeberg.org/bovine/bovine) | [bovine-testing](https://github.com/steve-bate/bovine-aptesting) | Python |
-
 
 As mentioned in the project summary, the test suite is currently focused on ActivityPub compliance testing. However, if well-defined requirements are defined for other needs like server interoperability testing, this framework is intended to support that goal in the future.
 ## Primary Goals
