@@ -48,7 +48,7 @@ def test_assumes_default_context(remote_actor: Actor, local_actor: Actor):
 
 
 @pytest.mark.skip("TODO Requirement is unclear")
-@pytest.mark.ap_capability("s2s.inbox.post", "iri")
+@pytest.mark.ap_capability("s2s.inbox.post", "iri_mapping")
 def test_map_iris(remote_actor: Actor, local_actor: Actor):
     """AS2 2.2 - when an IRI that is not also a URI is given
     for dereferencing, it must be mapped to a URI using the
@@ -91,7 +91,7 @@ def test_map_iris(remote_actor: Actor, local_actor: Actor):
     # assert obj["url"] == mapped_uri
 
 
-@pytest.mark.ap_capability("s2s.inbox.post", "iri")
+@pytest.mark.ap_capability("s2s.inbox.post", "iri_mapping")
 def test_dont_map_iris_for_ids(remote_actor: Actor, local_actor: Actor):
     """AS2 2.2 - when an IRI that is not also a URI is given
     for dereferencing, it must be mapped to a URI using the

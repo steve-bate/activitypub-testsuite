@@ -203,7 +203,8 @@ class BaseActor(ABC, Actor):
 
     def get_json(self, url: str | dict, proxy=False, exception=True) -> dict:
         """Get an object as a JSON-LD document. Handles authentication."""
-        response = self.get(url)
+        accepted_media = "application/activity+json; q=1.0, application/json; q=0.8"
+        response = self.get(url, media_type=accepted_media)
         if response.is_error and exception:
             response.raise_for_status()
         return response.json()

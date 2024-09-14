@@ -134,7 +134,12 @@ def test_outbox_post(local_actor: Actor, media_type: str, test_config):
 def test_outbox_post_bad_media_type(
     local_actor: Actor,
 ):
-    activity = local_actor.make_activity({"object": local_actor.make_object()})
+    activity = local_actor.make_activity(
+        {
+            "type": "Create",
+            "object": local_actor.make_object(),
+        }
+    )
     response = local_actor.post(
         local_actor.outbox,
         activity,
@@ -159,7 +164,8 @@ def test_outbox_create_sets_attributedTo(case, local_actor):
         del activity["actor"]
     response = local_actor.post(local_actor.outbox, activity)
     activity = local_actor.get_json(response.headers["Location"])
-    assert "attributedTo" in activity["object"]
+    object = local_actor.get_json(get_id(activity["object"]))
+    assert "attributedTo" in object
 
 
 # AP Section 6.2 A mismatch between addressing of the Create activity
@@ -167,7 +173,7 @@ def test_outbox_create_sets_attributedTo(case, local_actor):
 # SHOULD copy any recipients of the Create activity to its
 # object upon initial distribution, and likewise with copying
 # recipients from the object to the wrapping Create activity.
-@pytest.mark.ap_capability("c2s.outbox.post")
+@pytest.mark.ap_capability("c2s.outbox.post", "recipient_merging")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_outbox_create_merges_recipients(
     # only using one local actor for single user instance-compatibility
