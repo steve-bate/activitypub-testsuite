@@ -40,7 +40,7 @@ def test_multityped_activity_is_delivered_to_inbox(
         {
             "@context": [AS2_CONTEXT, {"test": "https://custom.test"}],
             "type": ["Create", "test:InitiateChallenge"],
-            "object": "https://custom.test/game",
+            "object": {"id": "https://custom.test/game", "type": "test:game"},
             "to": local_actor.id,
         }
     )

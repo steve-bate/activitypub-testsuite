@@ -37,7 +37,7 @@ def test_assumes_default_context(remote_actor: Actor, local_actor: Actor):
         {
             "@context": SECURITY_CONTEXT,
             "type": "Create",
-            "object": remote_object["id"],
+            "object": {"id": remote_object["id"], "type": "Note"},
             "audience": "as:Public",
         }
     )
