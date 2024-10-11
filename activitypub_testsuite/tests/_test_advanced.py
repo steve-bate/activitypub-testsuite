@@ -158,7 +158,6 @@ def test_activity_with_multiple_actors(
     # assert stored_activity["actor"] == activity["actor"]
 
 
-@pytest.mark.ap_capability("s2s.inbox.post")
 def test_activity_with_multiple_objects(
     remote_actor: Actor,
     local_actor: Actor,
