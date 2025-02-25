@@ -344,7 +344,8 @@ def parse_content_type(content_type: str) -> MediaDescriptor:
 #
 
 
-def validate_uri(uri: str) -> bool: ...
+def validate_uri(uri: str) -> bool:
+    ...
 
 
 #

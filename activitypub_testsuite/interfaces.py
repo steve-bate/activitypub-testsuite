@@ -30,6 +30,7 @@ class HttpResponse(Protocol):
     def raise_for_status(self):
         ...
 
+
 class HttpRequestError(Exception):
     def __init__(self, message, response):
         super().__init__(message)

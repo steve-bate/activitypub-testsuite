@@ -4,6 +4,7 @@ from activitypub_testsuite.ap import AS2_CONTEXT, get_id
 from activitypub_testsuite.interfaces import Actor
 from activitypub_testsuite.support import dereference
 
+
 @pytest.mark.skip("FIXME Can't validate cached remote objects")
 @pytest.mark.ap_capability("s2s.inbox.post")
 def test_remote_dereference(

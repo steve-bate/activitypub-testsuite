@@ -130,6 +130,7 @@ def test_outbox_post(local_actor: Actor, media_type: str, test_config):
 
     local_actor.assert_eventually_in_collection(local_actor.outbox, activity_uri)
 
+
 @pytest.mark.ap_capability("c2s.outbox.post")
 def test_outbox_post_bad_media_type(
     local_actor: Actor,

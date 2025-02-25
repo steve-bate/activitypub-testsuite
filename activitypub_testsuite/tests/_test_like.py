@@ -3,6 +3,7 @@ import pytest
 from activitypub_testsuite.ap import get_id
 from activitypub_testsuite.interfaces import Actor
 
+
 @pytest.mark.ap_capability("s2s.inbox.post.Like")
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_inbox_like_local(

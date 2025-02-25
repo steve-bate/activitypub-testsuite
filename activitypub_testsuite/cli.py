@@ -1,4 +1,5 @@
 import click
+
 from .report.generator import main as report_main
 
 
