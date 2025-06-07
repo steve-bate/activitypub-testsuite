@@ -117,7 +117,7 @@ def unauthenticated_actor(server_support) -> Actor:
 
 
 @pytest.fixture(scope="module")
-def event_loop() -> asyncio.AbstractEventLoop:
+def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.stop()

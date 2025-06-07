@@ -261,7 +261,7 @@ def find_available_tcp_port(start_port: int, end_port: int) -> int | None:
     return None
 
 
-def dereference(actor: Actor, obj: [dict | str]):
+def dereference(actor: Actor, obj: list[dict| str]):
     if isinstance(obj, str):
         return actor.get_json(obj)
     if "type" in obj and obj["type"] == "Link":
