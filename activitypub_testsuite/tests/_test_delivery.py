@@ -15,7 +15,7 @@ from activitypub_testsuite.interfaces import Actor, RemoteCommunicator
         "cc",
         "bcc",
         "bto",
-        pytest.param("audience", marks=pytest.mark.ap_capability("audience")),
+        pytest.param("audience", marks=pytest.mark.ap_capability("c2s.audience.delivery")),
     ],
 )
 def test_outbox_delivery_local(local_actor, recipient_key, local_actor2):
@@ -61,7 +61,7 @@ def test_outbox_delivery_local(local_actor, recipient_key, local_actor2):
         "cc",
         "bto",
         "bcc",
-        pytest.param("audience", marks=pytest.mark.ap_capability("audience")),
+        pytest.param("audience", marks=pytest.mark.ap_capability("c2s.audience.delivery")),
     ],
 )
 def test_outbox_delivery_remote(

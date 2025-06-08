@@ -17,7 +17,7 @@ from activitypub_testsuite.interfaces import Actor
                 field,
                 value,
                 value_type,
-                marks=pytest.mark.ap_capability("audience"),
+                marks=pytest.mark.ap_capability("audience.authorization"),
             )
         )
         for field in RECIPIENT_FIELDS
