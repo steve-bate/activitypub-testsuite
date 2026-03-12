@@ -207,11 +207,11 @@ def test_outbox_create_merges_recipients(
         # TODO (B) @tests Make bcc access by owner configurable
         # bcc cannot be retrieved, even by owner
         # assert sorted(obj["bcc"]) == sorted(["as:Public", remote_actor3.id])
-        assert obj["cc"] == remote_actor3.id
+        assert obj["cc"] == [remote_actor3.id]
         # TODO (B) @tests Make bcc access by owner configurable
         # bto cannot be retrieved, even by owner
         # assert obj["bto"] == remote_actor.id
-        assert obj["audience"] == local_actor.id
+        assert obj["audience"] == [local_actor.id]
 
     assert_merged_recipients(activity)
     obj = local_actor.get_json(get_id(activity["object"]))
