@@ -8,6 +8,8 @@ from activitypub_testsuite.support import is_unauthorized
 def test_actor_blocking(
     local_actor: Actor, remote_actor: Actor, remote_actor2: Actor, test_config
 ):
+    # Two remote actors send inbox posts to the local actor
+
     remote_actor.post(
         local_actor.inbox,
         remote_actor.setup_activity({"object": remote_actor.setup_object()}),
@@ -17,6 +19,8 @@ def test_actor_blocking(
         local_actor.inbox,
         remote_actor2.setup_activity({"object": remote_actor2.setup_object()}),
     )
+
+    # Local actor received both activities
 
     inbox_items = local_actor.get_collection_item_uris(local_actor.inbox)
     assert len(inbox_items) == 2

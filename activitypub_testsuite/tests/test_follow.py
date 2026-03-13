@@ -133,7 +133,7 @@ def test_inbox_undo_follow(
             "type": "Accept",
             "to": remote_actor.id,
             "object": follow_activity["id"],
-        },
+        }, 
     )
 
     # Wait for Accept
