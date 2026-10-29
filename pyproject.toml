@@ -1,40 +1,43 @@
-[tool.poetry]
+[project]
 name = "activitypub-testsuite"
 version = "0.1.0"
-description = ""
-authors = ["Steve Bate <svc-github@stevebate.net>"]
+description = "Server-independent, fully-automated test suite focused on ActivityPub server compliance testing."
 readme = "README.md"
-packages = [{ include = "activitypub_testsuite" }]
+authors = [{ name = "Steve Bate", email = "svc-github@stevebate.net" }]
+requires-python = ">=3.11"
+dependencies = [
+    "dictlib>=1.1.5",
+    "cryptography>=44.0.1",
+    "httpx>=0.27.0",
+    "pytest-json-report>=1.5.0",
+    "pytest-metadata>=3.0.0",
+    "jinja2>=3.1.5",
+    "click>=8.1.7",
+    "rfc3987>=1.3.8",
+    "pytest>=8.3.2",
+    "pytest-asyncio>=0.26.0",
+    "virtualenv>=20.29.2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-dictlib = "^1.1.5"
-cryptography = "^44.0.1"
-httpx = "^0.27.0"
-pytest-json-report = "^1.5.0"
-pytest-metadata = "^3.0.0"
-jinja2 = "^3.1.5"
-click = "^8.1.7"
-rfc3987 = "^1.3.8"
-pytest = "^8.3.2"
-pytest-asyncio = "^0.26.0"
-virtualenv = "^20.29.2"
-
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.0.0"
-ruff = "0.6.4"
-pre-commit = "^3.3.3"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
+[project.scripts]
 aptest = "activitypub_testsuite.cli:aptest"
 
-[tool.poetry.plugins."pytest11"]
+[project.entry-points.pytest11]
 ap_json_report = "activitypub_testsuite.plugins"
+
+[dependency-groups]
+dev = [
+    "black>=24.0.0",
+    "ruff==0.6.4",
+    "pre-commit>=3.3.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["activitypub_testsuite"]
 
 [tool.isort]
 profile = "black"

@@ -38,6 +38,19 @@ After running the test suite, a test report can be generated to document the res
 
 ### [See also: Additional Documentation](docs/toc.md)
 
+## Development
+
+The project is managed with [uv](https://docs.astral.sh/uv/) (Python 3.11+). Dependencies are declared in
+`pyproject.toml` and pinned in `uv.lock`.
+
+```bash
+uv sync                 # create/update the .venv environment
+uv run pytest           # run the tests
+uv run aptest report    # generate an HTML report from test-report.json
+```
+
+See [Installation](docs/installation.md) for details.
+
 ### Report Screenshots
 
 <img src="docs/report1.png" height="400">
