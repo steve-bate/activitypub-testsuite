@@ -277,25 +277,49 @@ def check_server_state(test_config):
         pytest.fail("Server error detected")
 
 
-def install_as_link():
+def install_as_link(dest_dir: str, *, force: bool = False) -> list[tuple[str, str]]:
+    """Symlink the suite's test modules into *dest_dir*.
+
+    The test modules are kept in this package so they can be updated by
+    reinstalling it, but running them requires them to be reachable from the
+    project under test. (The VS Code pytest extension, for example, only runs
+    tests whose paths are inside the workspace.) Symlinks avoid copying the
+    files and keep them in sync with the installed package.
+
+    Args:
+        dest_dir: Directory to create the links in. Created if missing.
+        force: Replace existing files rather than leaving them alone.
+
+    Returns:
+        A list of ``(action, path)`` pairs, where *action* is one of
+        ``"linked"``, ``"replaced"`` or ``"exists"``.
+    """
     test_dir = os.path.dirname(tests.__file__)
-    for src_file in sorted(glob.glob(os.path.join(test_dir, "_test*.py"))):
-        src_file = src_file
-        dest_file = re.sub("^_test_", "test_fedi_", os.path.basename(src_file))
-        if not os.path.exists(dest_file):
-            os.symlink(src_file, dest_file)
-            print(f"Linked {dest_file}")
+    os.makedirs(dest_dir, exist_ok=True)
+    results: list[tuple[str, str]] = []
+    for src_file in sorted(glob.glob(os.path.join(test_dir, "test_*.py"))):
+        dest_file = os.path.join(dest_dir, os.path.basename(src_file))
+        if os.path.lexists(dest_file):
+            if not force:
+                results.append(("exists", dest_file))
+                continue
+            os.unlink(dest_file)
+            action = "replaced"
+        else:
+            action = "linked"
+        os.symlink(src_file, dest_file)
+        results.append((action, dest_file))
+    return results
 
 
 # TODO (C) @fixtures will need a 2-way sync for this?
 def install_fedi_tests(test_dir: str):
     """Install AP/Fedi tests into the specified directory"""
-    try:
-        cwd = os.getcwd()
-        os.chdir(test_dir)
-        install_as_link()
-    finally:
-        os.chdir(cwd)
+    for action, dest_file in install_as_link(test_dir):
+        if action == "exists":
+            print(f"Already linked: {dest_file}")
+        else:
+            print(f"Linked {dest_file}")
 
 
 @pytest.fixture(scope="session")

@@ -73,6 +73,45 @@ filterwarnings = [
 At this point you should be able to run `uv run pytest` from the command line although it will fail until you have a *server abstraction layer* to tell the framework how to interact
 with your specific server implementation.
 
+## Linking the test modules (recommended)
+
+The test modules live inside the `activitypub_testsuite` package, which is
+installed outside your project. Some tools only run tests whose paths are inside
+the project — the VS Code pytest extension, for example, silently refuses to run
+tests outside the workspace. Run this from your project directory to create
+symlinks to the test modules in `./tests`:
+
+```bash
+uv run aptest link
+```
+
+Then point pytest at the links instead of at the installed package:
+
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+```
+
+For VS Code, use the same path:
+
+```json
+"python.testing.pytestArgs": ["tests"]
+```
+
+The links point at the installed package, so re-running `aptest link` after
+upgrading the test suite is only needed to pick up *newly added* modules;
+existing links always resolve to the current files. Pass a directory to link
+somewhere else, or `--force` to replace existing files:
+
+```bash
+uv run aptest link mytests
+uv run aptest link --force
+```
+
+Skip this section if you only run the tests from the command line with
+`pytest` and never from an IDE.
+
+
 ## Working on the test suite itself
 
 Clone the repository and synchronize the development environment. The `dev` dependency group
