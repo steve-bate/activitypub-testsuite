@@ -223,7 +223,7 @@ def test_outbox_create_merges_recipients(
 # AP Section 5.1 - The outbox MUST be an OrderedCollection.
 @pytest.mark.ap_capability("c2s.outbox.post")
 @pytest.mark.ap_reqlevel("MUST")
-@pytest.mark.ap_capability("c2s.activity.Create", "c2s.outbox.post", "c2s.outbox.get")
+@pytest.mark.ap_capability("c2s.outbox.post.Create", "c2s.outbox.get")
 def test_outbox_reverse_chrono(
     local_actor: Actor,
 ):
@@ -396,7 +396,7 @@ def test_outbox_requires_object_for_certain_activities(
         pytest.param(
             case,
             marks=pytest.mark.ap_capability(
-                "c2s.outbox.post.Add", "collections.custom"
+                "c2s.outbox.post.Add", "c2s.collections.custom"
             ),
         )
         for case in ["with_target", "without_target"]
@@ -436,7 +436,7 @@ def test_outbox_requires_target_for_add(case: str, local_actor: Actor):
         pytest.param(
             case,
             marks=pytest.mark.ap_capability(
-                "c2s.outbox.post.Remove", "collections.custom"
+                "c2s.outbox.post.Remove", "c2s.collections.custom"
             ),
         )
         for case in ["with_target", "without_target"]
@@ -484,7 +484,7 @@ def test_outbox_requires_target_for_remove(case: str, local_actor: Actor):
 
 
 @pytest.mark.ap_reqlevel("MUST")
-@pytest.mark.ap_capability("s2s.outbox-post")
+@pytest.mark.ap_capability("c2s.outbox.post.object")
 def test_outbox_wraps_object_and_copies_recipients(
     local_actor: Actor,
     remote_actor: Actor,

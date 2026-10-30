@@ -3,7 +3,7 @@ import pytest
 from activitypub_testsuite.interfaces import Actor
 
 
-@pytest.mark.ap_capability("collections.custom")
+@pytest.mark.ap_capability("s2s.collections.custom")
 def test_inbox_add(remote_actor: Actor, local_actor: Actor):
     collection = remote_actor.setup_collection({"audience": "as:Public"})
     obj = remote_actor.setup_object()
@@ -19,7 +19,7 @@ def test_inbox_add(remote_actor: Actor, local_actor: Actor):
     assert obj["id"] in item_uris
 
 
-@pytest.mark.ap_capability("collections.custom")
+@pytest.mark.ap_capability("s2s.collections.custom")
 def test_inbox_remove(remote_actor: Actor, local_actor: Actor):
     obj = remote_actor.setup_object()
     collection = remote_actor.setup_collection(
@@ -37,7 +37,7 @@ def test_inbox_remove(remote_actor: Actor, local_actor: Actor):
     assert len(item_uris) == 0
 
 
-@pytest.mark.ap_capability("collections.custom")
+@pytest.mark.ap_capability("c2s.collections.custom")
 def test_outbox_add(local_actor: Actor):
     collection = local_actor.setup_collection({"audience": "as:Public"})
     obj = local_actor.setup_object()
@@ -53,7 +53,7 @@ def test_outbox_add(local_actor: Actor):
     assert obj["id"] in item_uris
 
 
-@pytest.mark.ap_capability("collections.custom")
+@pytest.mark.ap_capability("c2s.collections.custom")
 def test_outbox_remove(local_actor: Actor):
     obj = local_actor.setup_object()
     collection = local_actor.setup_collection(

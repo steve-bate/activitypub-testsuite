@@ -27,13 +27,11 @@ def test_inbox_share_local_from_remote(
         {
             "type": "Note",
             "to": "as:Public",
+            "shares": local_actor.setup_collection(name="shares"),
         }
     )
 
-    if "shares" in shared_object:
-        object_shares_uri = get_id(shared_object["shares"])
-    else:
-        pytest.skip("No object shares collection support")
+    object_shares_uri = get_id(shared_object["shares"])
 
     share_activity = remote_actor.make_activity(
         {
