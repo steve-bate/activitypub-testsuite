@@ -192,7 +192,10 @@ class ServerTestSupport(Protocol):
     def get_local_actor(self, actor_name: str) -> Actor:
         ...
 
-    def get_remote_actor(self, actor_name: str | None = None) -> Actor:
+    def get_remote_actor(
+        self, actor_name: str | None = None, *, shared_inbox: bool = False
+    ) -> Actor:
+        """A remote actor; `shared_inbox` advertises an `endpoints.sharedInbox`."""
         ...
 
     def get_unauthenticated_actor(self, actor_name: str) -> Actor:

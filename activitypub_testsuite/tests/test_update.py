@@ -60,7 +60,10 @@ def test_outbox_partial_update(local_actor):
 # be done by ensuring that the Update and its object are of same origin.
 
 
-@pytest.mark.skip("Requires access to internal local copies of remote objects")
+@pytest.mark.skip(
+    "Reads the object at its own id from the origin server, not from the receiver's copy: "
+    "a replacement held in the receiver's remote cache is not observable through this URL"
+)
 @pytest.mark.ap_reqlevel("SHOULD")
 def test_inbox_replace(remote_actor, local_actor):
     original_object = remote_actor.setup_object(

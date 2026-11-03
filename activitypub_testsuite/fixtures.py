@@ -112,6 +112,12 @@ def remote_actor4(server_support) -> Actor:
 
 
 @pytest.fixture
+def remote_actor_with_shared_inbox(server_support) -> Actor:
+    """A remote actor whose document advertises an `endpoints.sharedInbox` (AP 4.1)."""
+    return server_support.get_remote_actor("remote_actor_shared", shared_inbox=True)
+
+
+@pytest.fixture
 def unauthenticated_actor(server_support) -> Actor:
     return server_support.get_unauthenticated_actor()
 
@@ -360,10 +366,28 @@ def conditionally_skip_test(request: pytest.FixtureRequest, test_config: Mapping
         pytest.xfail(xfail if isinstance(xfail, str) else "(configured)")
 
 
-def dig(data: dict, key: str, default_value: Any = None):
+def dig(data: Any, key: str, default_value: Any = None) -> Any:
+    """Look up a dotted *key* in the nested mapping *data*.
+
+    Returns *default_value* if the key is not present. A bool found in the
+    path is treated like a dict with a ``"default"`` key holding that bool,
+    so that e.g. ``dereferencing = true`` also covers ``dereferencing.authz``.
+    """
     try:
         return dictlib.dig(data, key)
     except KeyError:
+        return default_value
+    except TypeError:
+        # A parent in the path is a bool rather than a dict, so treat it as a
+        # dict with a "default" key and return the bool. Walk up the path to
+        # find the nearest ancestor that actually exists.
+        parts = key.split(".")
+        for end in range(len(parts) - 1, 0, -1):
+            try:
+                value = dictlib.dig(data, ".".join(parts[:end]))
+            except (KeyError, TypeError):
+                continue
+            return value if isinstance(value, bool) else default_value
         return default_value
 
 

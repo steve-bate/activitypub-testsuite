@@ -61,8 +61,10 @@ class HttpxServerTestSupport(ServerTestSupport):
         return self._httpd
 
     @lru_cache
-    def get_remote_actor(self, actor_name: str = "remote_actor") -> Actor:
-        return HttpxRemoteActor(self, actor_name)
+    def get_remote_actor(
+        self, actor_name: str = "remote_actor", shared_inbox: bool = False
+    ) -> Actor:
+        return HttpxRemoteActor(self, actor_name, shared_inbox=shared_inbox)
 
     @lru_cache
     def get_unauthenticated_actor(
@@ -246,11 +248,13 @@ class HttpxRemoteActor(HttpxBaseActor):
         self,
         server: HttpxServerTestSupport,
         actor_name: str,
-        authenticated: bool = True
+        authenticated: bool = True,
+        shared_inbox: bool = False,
         # Local endpoint for serving remote actor requests (host, port)
     ):
         self.actor_base_url = server.remote_base_url
         self.actor_id = f"{server.remote_base_url}/{actor_name}"
+        self.shared_inbox = shared_inbox
         key_id = f"{self.actor_id}#main-key"
         self.public_key, self.private_key = get_key_pair()
         auth = HTTPSignatureAuth(key_id, self.private_key) if authenticated else None
@@ -276,7 +280,7 @@ class HttpxRemoteActor(HttpxBaseActor):
         return f"{self.actor_base_url}/{type_ns}/{uuid.uuid4()}"
 
     def get_profile(self, key_id: str, actor_name: str):
-        return {
+        profile = {
             "@context": [AS2_CONTEXT, SECURITY_CONTEXT],
             "id": self.actor_id,
             "type": "Person",
@@ -290,6 +294,9 @@ class HttpxRemoteActor(HttpxBaseActor):
                 "publicKeyPem": self.public_key,
             },
         }
+        if self.shared_inbox:
+            profile["endpoints"] = {"sharedInbox": f"{self.actor_base_url}/shared"}
+        return profile
 
     def expect_request(self):
         self._request_received = Condition()
